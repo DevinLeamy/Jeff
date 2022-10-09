@@ -34,6 +34,7 @@ interact with items
     \x1b[0;34mchdir\x1b[0m, \x1b[0;34mcd\x1b[0m       change folder within current vault
     \x1b[0;34mlist\x1b[0m, \x1b[0;34mls\x1b[0m        print dir tree of current folder
     \x1b[0;34malias\x1b[0m, \x1b[0;34mal\x1b[0m       set aliases for a note
+    \x1b[0;34mtoday\x1b[0m           edit daily note
 
 perform fs operations on items
     \x1b[0;34mremove\x1b[0m, \x1b[0;34mrm\x1b[0m      remove an item 
@@ -68,6 +69,15 @@ pub enum Command {
         /// absolute path to location of new vault
         #[clap(value_parser, name = "vault location")]
         location: Option<PathBuf>,
+    },
+    /// create or edit the daily note
+    /// format: YYYY-MM-DD
+    #[clap(override_usage("jt today"))]
+    Today {
+        /// create the daily note, if it does not exist 
+        #[clap(parse(from_flag), short = 'c', long="create")]
+        // dne = does not exist
+        create_if_dne: bool,
     },
     /// enter a vault.
     #[clap(alias = "en")]

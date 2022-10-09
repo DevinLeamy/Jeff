@@ -7,6 +7,7 @@ use crate::{
         vaults::Vaults,
     },
     traits::FileIO,
+    utils::daily_note_name,
 };
 use clap::Parser;
 
@@ -53,6 +54,22 @@ impl App {
                     .ref_current()?
                     .create_vault_item(VaultItem::Nt, name)?;
                 return Ok(Message::ItemCreated(Item::Nt, name.to_owned()));
+            }
+            Command::Today { create_if_dne } => {
+                let daily_note_name = daily_note_name(); 
+                let vault = self.vaults.mut_current()?;
+
+                /*
+                 * Edit the daily note. If -c is supplied, create the 
+                 * daily note if it doesn't exist. 
+                 */
+                if *create_if_dne {
+                    vault.create_and_open_note(&daily_note_name, self.config.get_editor_data())?;
+                } else {
+                    vault.open_note(&daily_note_name, self.config.get_editor_data())?;
+                }
+
+                return Ok(Message::Empty);
             }
             Command::Alias { name, maybe_alias, remove_alias } => {
                 if *remove_alias {
