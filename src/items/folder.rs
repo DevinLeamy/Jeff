@@ -39,7 +39,7 @@ impl Item for Folder {
 
 impl Folder {
     /**
-     * Creates a new folder at the current location.
+     * Creates a new folder at the given location.
      */
     pub fn create(location: PathBuf) -> Result<Self, Error> {
         todo!();

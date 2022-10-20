@@ -19,7 +19,8 @@ pub struct Vault {
     location: Option<PathBuf>,
     folder: PathBuf,
     history: Vec<(String, PathBuf)>,
-    aliases: HashMap<String, String>, }
+    aliases: HashMap<String, String>, 
+}
 
 impl Default for Vault {
     fn default() -> Self {
