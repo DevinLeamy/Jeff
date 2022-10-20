@@ -122,6 +122,24 @@ impl Vault {
     }
 
     /**
+     * Returns the list of all folders inside of this vault.
+     */
+    pub fn get_folders(&self) -> Vec<String> {
+        let path = self.generate_location();
+        let mut folders = vec![];
+
+        for entry in path.read_dir().unwrap() {
+            let entry = entry.unwrap().path();
+
+            if entry.is_dir() && entry.file_name().unwrap() != ".jot" {
+                folders.push(entry.file_stem().unwrap().to_str().unwrap().to_string());
+            }
+        }
+
+        folders
+    }
+
+    /**
      * Check if the vault contains a note with the 
      * give name.
      */
@@ -305,6 +323,15 @@ impl Vault {
         }
 
         let notes = self.get_notes();
+        let mut folders = self.get_folders();
+
+        folders.sort();
+
+        println!("{:?}", folders);
+
+        // for folder in folders {
+        //     list_folder_and_contents(folder, self.generate_location(), &self.aliases);
+        // }
 
         list_notes(&notes, &self.aliases);
     }

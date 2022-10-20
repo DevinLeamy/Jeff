@@ -158,9 +158,7 @@ fn run_editor_collect(editor_data: &EditorData, path: &Path) -> Result<(), std::
 }
 
 pub fn list_notes(notes: &Vec<String>, aliases: &HashMap<String, String>) {
-    for (i, note) in notes.iter().enumerate() {
-        let is_last = i == notes.len() - 1;
-
+    fn display_fn(note: &String, maybe_alias: Option<&String>, is_last: bool) {
         if is_last {
             print!("└── ")
         } else {
@@ -168,12 +166,34 @@ pub fn list_notes(notes: &Vec<String>, aliases: &HashMap<String, String>) {
         }
 
         print!("\x1b[0;34m{}\x1b[0m", note);
-        if let Some(alias) = aliases.get(note) {
+        if let Some(alias) = maybe_alias {
             print!(" -> \x1b[0;34m{}\x1b[0m", alias);
         }
         println!();
     }
+
+    list_notes_with_display(notes, aliases, display_fn);
 }
+
+pub fn list_notes_with_display(notes: &Vec<String>, aliases: &HashMap<String, String>, display_fn: fn(&String, Option<&String>, bool) -> ()) {
+    let mut sorted_notes = notes.clone();
+    sorted_notes.sort();
+
+    for (i, note) in sorted_notes.iter().enumerate() {
+        let is_last = i == sorted_notes.len() - 1;
+
+        display_fn(note, aliases.get(note), is_last);
+    }
+}
+
+pub fn list_folder_and_contents(folder_name: String, location: &PathBuf, aliases: &HashMap<String, String>) {
+    
+}
+
+pub fn _list_folder_and_contents(folder_name: String, location: &PathBuf, aliases: &HashMap<String, String>, buffer: String) {
+     
+}
+
 
 fn generate_item_path(item_type: &Item, name: &str, location: &Path) -> Result<PathBuf, Error> {
     if !valid_name(name) {
