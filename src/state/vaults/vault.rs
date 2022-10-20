@@ -7,6 +7,7 @@ use crate::{
         create_item, join_paths, move_item, process_path, list_notes, remove_item, rename_item,
         run_editor,
     },
+    items::{Note, Folder}
 };
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -112,7 +113,7 @@ impl Vault {
         for entry in path.read_dir().unwrap() {
             let entry = entry.unwrap().path();
 
-            if entry.is_file() && entry.extension().unwrap() == "md" {
+            if Note::is_jot_note(&entry) {
                 let note_name = entry.file_stem().unwrap().to_str().unwrap().to_string();
                 notes.push(note_name);
             }
@@ -131,7 +132,7 @@ impl Vault {
         for entry in path.read_dir().unwrap() {
             let entry = entry.unwrap().path();
 
-            if entry.is_dir() && entry.file_name().unwrap() != ".jot" {
+            if Folder::is_jot_folder(&entry) {
                 folders.push(entry.file_stem().unwrap().to_str().unwrap().to_string());
             }
         }
