@@ -20,6 +20,10 @@ pub fn join_paths<T: AsRef<Path>>(paths: Vec<T>) -> PathBuf {
     full_path
 }
 
+pub fn get_absolute_path(parent_dir: &PathBuf, file_name: &String) -> PathBuf {
+    join_paths(vec![parent_dir.to_str().unwrap(), file_name])
+}
+
 // returns new pathbuf -> with slashes formatted according to os & '..'s collapsed
 // use this when storing or displaying paths
 // not using canonicalize because it returns \\?\C:\*path* on windows
@@ -124,7 +128,7 @@ pub fn move_item(
         return Err(Error::ItemAlreadyExists(item_type, name.to_owned()));
     }
 
-    let original_path = vec![generate_item_path(&item_type, name, original_location)?];
+    let original_path = vec![generate_item_sath(&item_type, name, original_location)?];
     move_items(&original_path, &new_location, &CopyOptions::new())?;
 
     Ok(new_path)

@@ -1,10 +1,10 @@
 use std::path::PathBuf;
-use std::fs::{remove_file, File};
+use std::fs::{remove_file, File, rename};
 
 use crate::utils::join_paths;
 use crate::items::{Item, Error, Folder};
 
-
+#[derive(Debug)]
 pub struct Note {
     location: PathBuf,
 }
@@ -19,8 +19,8 @@ impl Item for Note {
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> Result<(), Error> {
-        assert!(new_location.is_file());
-        std::fs::rename(&self.location, &new_location)?;
+        assert!(Note::is_jot_note(&new_location));
+        rename(&self.location, &new_location)?;
         self.location = new_location;
 
         Ok(())
@@ -30,13 +30,15 @@ impl Item for Note {
         let file_parent = self.location.parent().unwrap();
         let new_location = join_paths(vec![file_parent.to_str().unwrap(), &new_name]);
 
-        std::fs::rename(&self.location, &new_location)?;
+        rename(&self.location, &new_location)?;
         self.location = new_location;
 
         Ok(())
     }
 
     fn delete(&self) -> Result<(), Error> {
+        // TODO: make sure the user is prompted before executing 
+        // NOTE: this could potentially delete a lot of information! 
         remove_file(&self.location)
     }
 }

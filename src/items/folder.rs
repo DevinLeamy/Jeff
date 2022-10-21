@@ -1,11 +1,13 @@
 use std::path::PathBuf;
-use std::fs::{remove_file, File};
+use std::fs::{remove_dir_all, File, rename};
 
 use crate::items::{Note, Error, Item};
+use crate::utils::{join_paths, get_absolute_path};
 
 // use crate::utils::join_paths;
 
 
+#[derive(Debug)]
 pub struct Folder {
     folders: Vec<Box<Folder>>,
     notes: Vec<Note>,
@@ -22,18 +24,31 @@ impl Item for Folder {
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> Result<(), Error> {
-        todo!()
+        assert!(Folder::is_jot_folder(&new_location));
+        rename(&self.location, &new_location)?;
+        self.location = new_location;
+
+        Ok(())
     }
 
     fn rename(&mut self, new_name: String) -> Result<(), Error> {
-        todo!()
+        let file_parent = self.location.parent().unwrap();
+        let new_location = get_absolute_path(&file_parent.to_path_buf(), &new_name);
+
+        assert!(Folder::is_jot_folder(&new_location));
+        rename(&self.location, &new_location)?;
+        self.location = new_location;
+
+        Ok(())
     }
 
     /**
      * Deletes the folder and all of its contents.
      */
     fn delete(&self) -> Result<(), Error> {
-        todo!()
+        // TODO: make sure the user is prompted before executing 
+        // NOTE: this could potentially delete a lot of information! 
+        remove_dir_all(&self.location)
     }
 }
 
@@ -53,7 +68,7 @@ impl Folder {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn new(location: PathBuf) -> Result<Self, Error> {
+    pub fn load(location: PathBuf) -> Result<Self, Error> {
         assert!(location.is_dir());
         let mut folder = Folder {
             location,
@@ -74,7 +89,7 @@ impl Folder {
             let item_location = item.unwrap().path();
 
             if Folder::is_jot_folder(&item_location) {
-                let folder = Folder::new(item_location)?;
+                let folder = Folder::load(item_location)?;
                 self.folders.push(Box::new(folder));
             } else if Note::is_jot_note(&item_location) {
                 let note = Note::new(item_location)?;

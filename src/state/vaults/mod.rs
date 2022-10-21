@@ -6,10 +6,10 @@ use crate::{
     output::error::Error,
     traits::FileIO,
     utils::{create_item, join_paths, move_item, process_path, remove_item, rename_item},
+    items::{Vault, Error as IOError},
 };
 use data::Data;
 use std::path::Path;
-use vault::Vault;
 
 #[derive(Debug)]
 pub struct Vaults {
@@ -27,20 +27,22 @@ impl Vaults {
         vaults
     }
 
-    fn load_current_vault(&mut self) {
+    fn load_current_vault(&mut self) -> Result<(), IOError>{
         self.current = if let Some(current_vault_name) = self.data.get_current_vault() {
             let current_vault_location = self.data.get_vault_location(current_vault_name).unwrap();
 
-            let path = join_paths(vec![
-                current_vault_location.to_str().unwrap(),
-                current_vault_name,
-                ".jot/data",
-            ]);
-
-            Some(Vault::load_path(path))
+            // let path = join_paths(vec![
+            //     current_vault_location.to_str().unwrap(),
+            //     current_vault_name,
+            //     ".jot/data",
+            // ]);
+            let current_vault = Vault::load(current_vault_name.clone(), current_vault_location.clone())?;
+            Some(current_vault)
         } else {
             None
-        }
+        };
+
+        Ok(())
     }
 
     pub fn list_vaults(&self, show_loc: &bool) {
