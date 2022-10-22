@@ -60,7 +60,10 @@ impl Item for Note {
     }
 
     fn create(note_location: PathBuf) -> JotResult<Self> {
-        todo!()
+        let _result = File::options().create_new(true).write(true).open(&note_location)?;
+        let note = Note::load(note_location)?;
+
+        Ok(note)
     }
 }
 
