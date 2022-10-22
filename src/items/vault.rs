@@ -245,50 +245,75 @@ impl VaultStore {
     }
 }
 
-const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::{thread, time};
+    use std::panic::UnwindSafe;
+    const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
 
+    fn sleep() {
+        let ten_millis = time::Duration::from_millis(100);
+        thread::sleep(ten_millis);
+    }
 
-    #[test]
-    fn create_vault_test() -> JotResult<()> {
-        let new_vault_path = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/new_vault");
-        Vault::create(new_vault_path.clone())?;
+    fn setup() {
+        let _res = create_dir_all(PathBuf::from(TEST_HOME));
+        sleep();
+    }
 
-        assert!(new_vault_path.exists() && new_vault_path.is_dir());
+    fn run_test<T>(test: T)
+    where 
+        T: FnOnce() -> () + UnwindSafe 
+    {
+        setup();
+        let result = std::panic::catch_unwind(test); 
+        teardown();
 
-        remove_dir_all(new_vault_path)?;
+        assert!(result.is_ok())
+    }
 
-        Ok(())
+    fn teardown() -> () {
+        let _res = remove_dir_all(PathBuf::from(TEST_HOME));
+        sleep();
+    }
+
+    fn path(name: &str) -> PathBuf {
+        format!("{}/{}", TEST_HOME, name).into()
     }
 
     #[test]
-    fn cannot_create_duplicate_vaults() -> JotResult<()> {
-        let vault_1 = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/vault_1");
-        let vault_2 = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/vault_1");
+    fn create_vault_test() {
+        run_test(|| {
+            let new_vault_path = path("new_vault"); 
+            Vault::create(new_vault_path.clone()).unwrap();
 
-        Vault::create(vault_1.clone())?;
+            assert!(new_vault_path.exists() && new_vault_path.is_dir());
+        });
+    }
 
-        let ten_millis = time::Duration::from_millis(10);
+    #[test]
+    fn test_framework() {
+        run_test(|| {
+            let sum = 2 + 2;
+            assert!(sum == 4);
+        });
+    }
 
-        thread::sleep(ten_millis);
+    #[test]
+    fn cannot_create_duplicate_vaults() {
+        run_test(|| {
+            let vault_1 = path("vault_1");
+            let vault_2 = path("vault_1");
 
-        let res = std::panic::catch_unwind(|| {
+            Vault::create(vault_1.clone()).unwrap();
+
             assert!(vault_1.exists() && vault_1.is_dir());
-
             match Vault::create(vault_2) {
                 Ok(_)  => assert!(false), // should never happen
-                Err(_) => assert!(true),
+                Err(_) =>  ()
             }
         });
-
-        remove_dir_all(TEST_HOME)?;
-
-        assert!(res.is_ok());
-
-        Ok(())
     }
 }
