@@ -4,7 +4,7 @@ pub use crate::{
     state::*,
     utils::*,
     editor::*,
-    enums::*, 
+    enums::{Item as ItemType, VaultItem as VaultItemType}, 
     traits::*,
     tests::*,
 };

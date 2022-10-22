@@ -32,3 +32,11 @@ fn teardown() -> () {
 pub fn test_path(name: &str) -> PathBuf {
     format!("{}/{}", TEST_HOME, name).into()
 }
+
+#[test]
+fn test_framework() {
+    run_test(|| {
+        let sum = 2 + 2;
+        assert!(sum == 4);
+    });
+}

@@ -51,6 +51,17 @@ impl Item for Note {
             format!("{}.md", note_name).as_str(),
         ])
     }
+
+    /**
+     * Initializes an existing note from its path
+     */
+    fn load(note_location: PathBuf) -> JotResult<Self> {
+        Ok(Note { location: note_location })
+    }
+
+    fn create(note_location: PathBuf) -> JotResult<Self> {
+        todo!()
+    }
 }
 
 impl Note {
@@ -64,14 +75,7 @@ impl Note {
     //     Ok(Note { location })
     // }
 
-    /**
-     * Initializes an existing note from its path
-     */
-    pub fn new(note_location: PathBuf) -> Result<Self, Error> {
-        Ok(Note { location: note_location })
-    }
-
-    /**
+       /**
      * Checks if a path points to a valid jot note.
      */
     pub fn is_jot_note(location: &PathBuf) -> bool {

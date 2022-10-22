@@ -71,14 +71,10 @@ impl Item for Folder {
             folder_name,
         ])
     }
-}
-
-impl Folder {
     /**
      * Creates a new folder at the given location.
      */
-    pub fn create(location: PathBuf) -> JotResult<Self> {
-        
+    fn create(location: PathBuf) -> JotResult<Self> {
         Ok(Folder {
             location,
             folders: vec![],
@@ -89,7 +85,7 @@ impl Folder {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn load(location: PathBuf) -> JotResult<Self> {
+    fn load(location: PathBuf) -> JotResult<Self> {
         assert!(location.is_dir());
         let mut folder = Folder {
             location,
@@ -101,6 +97,10 @@ impl Folder {
 
         Ok(folder)
     }
+}
+
+impl Folder {
+    
     /**
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
@@ -113,10 +113,9 @@ impl Folder {
                 let folder = Folder::load(item_location)?;
                 self.folders.push(Box::new(folder));
             } else if Note::is_jot_note(&item_location) {
-                let note = Note::new(item_location)?;
+                let note = Note::load(item_location)?;
                 self.notes.push(note);
             }
-
         }
 
         Ok(())
@@ -124,7 +123,7 @@ impl Folder {
 
     /**
      * Check if a given location points to a valid 
-     * `jot` [[Folder]]
+     * `jot` [Folder]
      */
     pub fn is_jot_folder(location: &PathBuf) -> bool {
         location.is_dir() && location.file_name().unwrap() != ".jot"

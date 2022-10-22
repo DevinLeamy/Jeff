@@ -1,17 +1,6 @@
-use crate::{
-    enums::{Item as ItemType, VaultItem as VaultItemType},
-    output::{error::{Error, JotResult}, message::Message},
-    state::{
-        args::{Args, Command},
-        config::Config,
-        vaults::Vaults,
-    },
-    traits::FileIO,
-    utils::daily_note_name,
-    items::{Collection, Item},
-    editor:: Editor,
-};
+use crate::prelude::*;
 use clap::Parser;
+use anyhow::anyhow;
 
 pub struct App {
     args: Args,
@@ -34,11 +23,7 @@ impl App {
 
     pub fn handle_args(&mut self) -> JotResult<Message> {
         match &self.args.command {
-            Command::Vault {
-                show_loc,
-                name,
-                location,
-            } => {
+            Command::Vault { show_loc, name, location, } => {
                 if let (Some(name), Some(location)) = (name, location) {
                     self.vaults.create_vault(name, location)?;
                     return Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()));
@@ -56,11 +41,17 @@ impl App {
                 return Ok(Message::VaultEntered(name.to_owned()));
             }
             Command::Note { name } => {
-                todo!()
-                // self.vaults
-                //     .ref_current()?
-                //     .create_vault_item(VaultItem::Nt, name)?;
-                // return Ok(Message::ItemCreated(Item::Nt, name.to_owned()));
+                let vault = self.vaults.ref_current()?;
+                let maybe_note = vault.get_note_with_name(name);
+                if let Ok(note) = maybe_note {
+                    return Err(anyhow!("Note with name [{}] already exists", note.get_name()));
+                }
+
+                let note_path = Note::generate_abs_path(vault.get_location(), name);
+
+                Note::create(note_path)?;
+
+                return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
             }
             Command::Today { create_if_dne } => {
                 todo!()
@@ -97,7 +88,7 @@ impl App {
                 // return Ok(Message::Empty);
             }
             Command::Open { name } => {
-                let note = self.vaults.ref_current()?.get_note_with_name(name)?; //, self.config.get_editor_data())?;
+                let note = self.vaults.ref_current()?.get_note_with_name(name)?;
                 self.editor.open_note(note)?;
                 
                 return Ok(Message::Empty);
@@ -189,4 +180,18 @@ impl App {
             _ => Ok(Message::Empty),
         }
     }
+}
+
+#[test]
+fn open_note_test() {
+    run_test(|| {
+
+    });
+}
+
+#[test]
+fn create_note_test() {
+    run_test(|| {
+
+    })
 }

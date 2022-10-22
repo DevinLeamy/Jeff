@@ -68,6 +68,12 @@ impl From<fs_extra::error::Error> for Error {
     }
 }
 
+impl From<Error> for String {
+    fn from(error: Error) -> Self {
+        format!("{}", error).to_string()
+    }
+}
+
 fn process_io_error(error: String) -> String {
     let mut error = error.to_lowercase();
     if let Some(dot) = error.find(".") {

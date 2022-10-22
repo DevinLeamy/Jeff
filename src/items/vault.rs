@@ -79,13 +79,11 @@ impl Item for Vault {
             vault_name,
         ])
     }
-} 
 
-impl Vault {
     /**
      * Creates a new new at the given location.
      */
-    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
+    fn create(absolute_path: PathBuf) -> JotResult<Self> {
         if absolute_path.exists() {
             return Err(anyhow!("{}", VaultAlreadyExists("Vault already exists".to_string())));
         }
@@ -106,11 +104,12 @@ impl Vault {
 
         Ok(new_vault)
     }
+
     /**
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
+    fn load(absolute_path: PathBuf) -> JotResult<Self> {
         assert!(absolute_path.is_dir());
         let mut new_vault = Vault {
             absolute_path: absolute_path.clone(),
@@ -129,6 +128,10 @@ impl Vault {
 
         Ok(new_vault)
     }
+} 
+
+impl Vault {
+    
     /**
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
@@ -141,7 +144,7 @@ impl Vault {
                 let folder = Folder::load(item_location)?;
                 self.folders.push(folder);
             } else if Note::is_jot_note(&item_location) {
-                let note = Note::new(item_location)?;
+                let note = Note::load(item_location)?;
                 self.notes.push(note);
             }
 
@@ -273,14 +276,6 @@ mod tests {
             sleep();
 
             assert!(new_vault_path.exists() && new_vault_path.is_dir());
-        });
-    }
-
-    #[test]
-    fn test_framework() {
-        run_test(|| {
-            let sum = 2 + 2;
-            assert!(sum == 4);
         });
     }
 
