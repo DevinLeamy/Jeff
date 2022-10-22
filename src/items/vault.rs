@@ -1,13 +1,14 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use std::fs::{remove_dir_all, rename};
+use std::fs::{remove_dir_all, rename, create_dir_all};
+use anyhow::anyhow;
 
 use crate::items::{Item, Error, Note, Folder};
 use crate::traits::FileIO;
 use crate::utils::{join_paths, get_absolute_path};
 use crate::enums::VaultItem;
-use crate::output::error::JotResult;
+use crate::output::error::{Error::*, JotResult};
 
 #[derive(Debug)]
 pub struct Vault {
@@ -75,6 +76,11 @@ impl Vault {
      * Creates a new new at the given location.
      */
     pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
+        if absolute_path.exists() {
+            return Err(anyhow!("{}", VaultAlreadyExists("Vault already exists".to_string())));
+        }
+
+        create_dir_all(&absolute_path)?;
         let new_vault = Vault {
             absolute_path: absolute_path.clone(),
             name: absolute_path.file_name().unwrap().to_str().unwrap().to_string(),
@@ -104,7 +110,6 @@ impl Vault {
             vault_store: VaultStore::load_path(
                 join_paths(vec![
                     absolute_path.to_str().unwrap(),
-                    ".jot/data",
                 ])
             ),
         };
@@ -186,11 +191,11 @@ impl Vault {
 pub struct VaultStore {
     /// path to the current active folder inside of the vault
     current_folder: Option<String>,
-    /// aliases for notes inside of the vault
-    aliases: HashMap<String, String>,
     /// absolute path to the vault store (in `.jot`, relative to [[Vault]])
     /// Option<T> type because [[FileIO]] has [[Default]] trait bound
     location: Option<PathBuf>,
+    /// aliases for notes inside of the vault
+    aliases: HashMap<String, String>,
 }
 
 impl Default for VaultStore {
@@ -209,11 +214,7 @@ impl FileIO for VaultStore {
      * store.
      */
     fn path(&self) -> PathBuf {
-        let location_str = self.location.clone().unwrap(); 
-        join_paths(vec![
-            location_str.to_str().unwrap(),
-            ".jot/data",
-        ])
+       self.location.clone().unwrap()
     }
 }
 
@@ -228,12 +229,8 @@ impl VaultStore {
             ".jot/data"
         ]);
 
-        let vault_store = VaultStore {
-            current_folder: None,
-            aliases: HashMap::new(),
-            location: Some(location),
-        };
-
+        let mut vault_store: VaultStore = FileIO::load_path(location.clone());
+        vault_store.location = Some(location);
         vault_store.store();
 
         vault_store
@@ -248,3 +245,50 @@ impl VaultStore {
     }
 }
 
+const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{thread, time};
+
+
+    #[test]
+    fn create_vault_test() -> JotResult<()> {
+        let new_vault_path = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/new_vault");
+        Vault::create(new_vault_path.clone())?;
+
+        assert!(new_vault_path.exists() && new_vault_path.is_dir());
+
+        remove_dir_all(new_vault_path)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn cannot_create_duplicate_vaults() -> JotResult<()> {
+        let vault_1 = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/vault_1");
+        let vault_2 = PathBuf::from("/Users/Devin/Desktop/Github/OpenSource/jot/tests/vault_1");
+
+        Vault::create(vault_1.clone())?;
+
+        let ten_millis = time::Duration::from_millis(10);
+
+        thread::sleep(ten_millis);
+
+        let res = std::panic::catch_unwind(|| {
+            assert!(vault_1.exists() && vault_1.is_dir());
+
+            match Vault::create(vault_2) {
+                Ok(_)  => assert!(false), // should never happen
+                Err(_) => assert!(true),
+            }
+        });
+
+        remove_dir_all(TEST_HOME)?;
+
+        assert!(res.is_ok());
+
+        Ok(())
+    }
+}

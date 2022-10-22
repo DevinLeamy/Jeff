@@ -35,6 +35,8 @@ pub trait FileIO: Debug + Default + Serialize + DeserializeOwned {
     fn store(&self) {
         let path = <Self as FileIO>::path(self);
 
+        println!("{:?}", path);
+
         let mut file = File::options()
             .write(true)
             .truncate(true)
