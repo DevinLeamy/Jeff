@@ -1,5 +1,7 @@
 use crate::enums::Item;
-use std::fmt::Display;
+use std::{fmt::Display};
+
+pub type JotResult<T> = anyhow::Result<T>;
 
 #[allow(unused)]
 #[derive(Debug)]

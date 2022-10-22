@@ -128,7 +128,7 @@ pub fn move_item(
         return Err(Error::ItemAlreadyExists(item_type, name.to_owned()));
     }
 
-    let original_path = vec![generate_item_sath(&item_type, name, original_location)?];
+    let original_path = vec![generate_item_path(&item_type, name, original_location)?];
     move_items(&original_path, &new_location, &CopyOptions::new())?;
 
     Ok(new_path)

@@ -1,20 +1,20 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::fs::{remove_dir_all, rename};
 
 use crate::items::{Item, Error, Note, Folder};
 use crate::traits::FileIO;
-use crate::utils::join_paths;
+use crate::utils::{join_paths, get_absolute_path};
 use crate::enums::VaultItem;
+use crate::output::error::JotResult;
 
 #[derive(Debug)]
 pub struct Vault {
     /// name of the vault
     name: String,
     /// absolute path of the vault 
-    location: PathBuf,
-    /// active folder inside of the vault,
-    folder: Option<Folder>,
+    absolute_path: PathBuf,
     /// folders inside of the vault,
     folders: Vec<Folder>,
     /// notes inside of the vault
@@ -25,23 +25,48 @@ pub struct Vault {
 
 impl Item for Vault {
     fn get_location(&self) -> &PathBuf {
-        &self.location 
+        &self.absolute_path 
     }
 
     fn get_name(&self) -> String {
         self.name.clone()
     }
 
-    fn relocate(&mut self, new_location: PathBuf) -> Result<(), Error> {
-        todo!()
+    fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {
+        assert!(Vault::is_jot_vault(&new_absolute_path));
+        rename(&self.absolute_path, &new_absolute_path)?;
+        self.absolute_path = new_absolute_path.clone();
+        self.vault_store.set_absolute_path(new_absolute_path);
+
+
+        Ok(())
     }
 
-    fn rename(&mut self, new_name: String) -> Result<(), Error> {
-        todo!()
+    fn rename(&mut self, new_name: String) -> JotResult<()> {
+        let vault_parent_dir = self.absolute_path.parent().unwrap();
+        let new_absolute_path = get_absolute_path(&vault_parent_dir.to_path_buf(), &new_name);
+        
+        assert!(Vault::is_jot_vault(&new_absolute_path));
+        rename(&self.absolute_path, &new_absolute_path)?;
+        self.absolute_path = new_absolute_path.clone();
+        self.vault_store.set_absolute_path(new_absolute_path);
+
+        Ok(())
     }
 
-    fn delete(&self) -> Result<(), Error> {
-        todo!()
+    fn delete(&self) -> JotResult<()> {
+        // TODO: make sure the user is prompted before executing 
+        // NOTE: this could potentially delete a lot of information! 
+        remove_dir_all(&self.absolute_path)?;
+
+        Ok(())
+    }
+
+    fn generate_abs_path(parent_dir: &PathBuf, vault_name: &String) -> PathBuf {
+        join_paths(vec![
+            parent_dir.to_str().unwrap(),
+            vault_name,
+        ])
     }
 } 
 
@@ -49,14 +74,13 @@ impl Vault {
     /**
      * Creates a new new at the given location.
      */
-    pub fn create(name: String, location: PathBuf) -> Result<Self, Error> {
-        let mut new_vault = Vault {
-            location,
-            name,
-            folder: None,
+    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
+        let new_vault = Vault {
+            absolute_path: absolute_path.clone(),
+            name: absolute_path.file_name().unwrap().to_str().unwrap().to_string(),
             folders: vec![],
             notes: vec![],
-            vault_store: VaultStore::create_from_path(location),
+            vault_store: VaultStore::create_from_path(absolute_path),
         };
 
         /*
@@ -70,16 +94,19 @@ impl Vault {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn load(name: String, location: PathBuf) -> Result<Self, Error> {
-        assert!(location.is_dir());
+    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
+        assert!(absolute_path.is_dir());
         let mut new_vault = Vault {
-            location,
-            name,
-            folder: None,
+            absolute_path: absolute_path.clone(),
+            name: absolute_path.file_name().unwrap().to_str().unwrap().to_string(),
             folders: vec![],
             notes: vec![],
-            // TODO: consider creating FileIO::load_from_path(&self, path: PathBuf)
-            vault_store: VaultStore::load(),
+            vault_store: VaultStore::load_path(
+                join_paths(vec![
+                    absolute_path.to_str().unwrap(),
+                    ".jot/data",
+                ])
+            ),
         };
 
         new_vault.load_contents()?;
@@ -90,14 +117,16 @@ impl Vault {
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
      */
-    pub fn load_contents(&mut self) -> Result<(), Error> {
-        for item in self.location.read_dir().unwrap() {
+    pub fn load_contents(&mut self) -> JotResult<()> {
+        for item in self.absolute_path.read_dir().unwrap() {
             let item_location = item.unwrap().path();
 
             if Folder::is_jot_folder(&item_location) {
+                println!("Loading: {:?}", item_location);
                 let folder = Folder::load(item_location)?;
                 self.folders.push(folder);
             } else if Note::is_jot_note(&item_location) {
+                println!("Found note: {:?}", item_location);
                 let note = Note::new(item_location)?;
                 self.notes.push(note);
             }
@@ -105,6 +134,25 @@ impl Vault {
         }
 
         Ok(())
+    }
+
+    /**
+     * Check if a given absolute path is a valid `jot` [[Vault]]
+     */
+    pub fn is_jot_vault(absolute_path: &PathBuf) -> bool {
+        // TOOD: add check to ensure that this vault 
+        // is not inside of another vault
+        absolute_path.is_dir() && absolute_path.file_name().unwrap() != ".jot"
+    }
+
+    /**
+     * Retrieve the path to the vault's persisted data store.
+     */
+    pub fn get_data_path(&self) -> PathBuf {
+        join_paths(vec![
+            self.absolute_path.to_str().unwrap(),
+            ".jot/data",
+        ])
     }
 }
 
@@ -161,8 +209,9 @@ impl FileIO for VaultStore {
      * store.
      */
     fn path(&self) -> PathBuf {
+        let location_str = self.location.clone().unwrap(); 
         join_paths(vec![
-            self.location.unwrap().to_str().unwrap(),
+            location_str.to_str().unwrap(),
             ".jot/data",
         ])
     }
@@ -188,6 +237,14 @@ impl VaultStore {
         vault_store.store();
 
         vault_store
+    }
+
+    /**
+     * Updates the absolute path to the vault.
+     */
+    pub fn set_absolute_path(&mut self, vault_path: PathBuf) {
+        self.location = Some(vault_path);
+        self.store();
     }
 }
 
