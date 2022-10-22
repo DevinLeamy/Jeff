@@ -1,18 +1,29 @@
+use std::any::TypeId;
 use std::path::PathBuf;
 use std::fs::{remove_dir_all, File, rename};
 
-use crate::items::{Note, Error, Item};
+use crate::items::{Collection, Note, Error, Item};
 use crate::utils::{join_paths, get_absolute_path};
 use crate::output::error::JotResult;
 
 // use crate::utils::join_paths;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Folder {
     folders: Vec<Box<Folder>>,
     notes: Vec<Note>,
     location: PathBuf,
+}
+
+impl Collection for Folder {
+    fn get_notes(&self) -> Vec<Note> {
+        self.notes.clone() 
+    }
+
+    fn get_folders(&self) -> Vec<Folder> {
+        self.folders.iter().map(|folder_box| *folder_box.clone()).collect::<Vec<Folder>>()
+    }
 }
 
 impl Item for Folder {
@@ -117,5 +128,17 @@ impl Folder {
      */
     pub fn is_jot_folder(location: &PathBuf) -> bool {
         location.is_dir() && location.file_name().unwrap() != ".jot"
+    }
+
+    pub fn list_with_buffer(&self, buffer: String) {
+        println!("├── {}{}", buffer, self.get_name());
+
+        for folder in self.get_folders_sorted() {
+            folder.list_with_buffer(format!("{}  ", buffer).to_string());
+        }
+
+        for note in self.get_notes_sorted() {
+            println!("├── {}{}", buffer, note.get_name());
+        }
     }
 }

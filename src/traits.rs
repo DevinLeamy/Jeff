@@ -16,6 +16,7 @@ pub trait FileIO: Debug + Default + Serialize + DeserializeOwned {
     }
 
     fn load_path(path: PathBuf) -> Self {
+        println!("LOAD: {:?}", path);
         match read_to_string(&path) {
             Ok(file_string) => {
                 if let Ok(file_data) = toml::from_str::<Self>(&file_string) {

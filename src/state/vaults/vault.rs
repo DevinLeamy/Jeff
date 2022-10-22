@@ -1,6 +1,6 @@
 use crate::{
     enums::VaultItem,
-    output::error::Error,
+    output::error::{Error, JotResult},
     traits::FileIO,
     state::config::EditorData,
     utils::{
@@ -9,6 +9,7 @@ use crate::{
     },
     items::{Note, Folder}
 };
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
@@ -164,9 +165,9 @@ impl Vault {
 }
 
 impl Vault {
-    pub fn set_alias(&mut self, note_name: String, alias_name: String) -> Result<(), Error> {
+    pub fn set_alias(&mut self, note_name: String, alias_name: String) -> JotResult<()> {
         if self.name_in_use(alias_name.clone()) {
-            return Err(Error::InvalidName)
+            return Err(anyhow!("{}", Error::InvalidName))
         }
 
         self.aliases.insert(note_name, alias_name);
@@ -187,7 +188,7 @@ impl Vault {
         }
     }
 
-    pub fn create_vault_item(&self, item_type: VaultItem, name: &str) -> Result<(), Error> {
+    pub fn create_vault_item(&self, item_type: VaultItem, name: &str) -> JotResult<()> {
         let location = self.generate_location();
 
         create_item(item_type.to_item(), name, &location)?;
@@ -195,7 +196,7 @@ impl Vault {
         Ok(())
     }
 
-    pub fn remove_vault_item(&self, item_type: VaultItem, name: &str) -> Result<(), Error> {
+    pub fn remove_vault_item(&self, item_type: VaultItem, name: &str) -> JotResult<()> {
         let location = self.generate_location();
 
         remove_item(item_type.to_item(), name, &location)?;
@@ -208,7 +209,7 @@ impl Vault {
         item_type: VaultItem,
         name: &str,
         new_name: &str,
-    ) -> Result<(), Error> {
+    ) -> JotResult<()> {
         let location = self.generate_location();
 
         rename_item(item_type.to_item(), name, new_name, &location)?;
@@ -221,14 +222,14 @@ impl Vault {
         item_type: VaultItem,
         name: &str,
         new_location: &PathBuf,
-    ) -> Result<(), Error> {
+    ) -> JotResult<()> {
         let vault_path = join_paths(vec![self.get_location().to_str().unwrap(), self.get_name()]);
         let original_location = join_paths(vec![&vault_path, self.get_folder()]);
 
         let new_location = process_path(&join_paths(vec![&original_location, new_location]));
 
         if !new_location.starts_with(vault_path) {
-            return Err(Error::OutOfBounds);
+            return Err(anyhow!("{}", Error::OutOfBounds));
         }
 
         move_item(item_type.to_item(), name, &original_location, &new_location)?;
@@ -242,7 +243,7 @@ impl Vault {
         name: &str,
         vault_name: &str,
         vault_location: &Path,
-    ) -> Result<(), Error> {
+    ) -> JotResult<()> {
         let original_location = self.generate_location();
 
         if vault_name == self.get_name() {
@@ -263,7 +264,7 @@ impl Vault {
     /**
      * Opens a note with the given name, and creates it if it doesn't exist.
      */
-    pub fn create_and_open_note(&mut self, name: &str, editor_data: &EditorData) -> Result<(), Error> {
+    pub fn create_and_open_note(&mut self, name: &str, editor_data: &EditorData) -> JotResult<()> {
         if !self.contains_note(&name.to_owned()) {
             self.create_vault_item(VaultItem::Nt, name)?;
         }
@@ -271,7 +272,7 @@ impl Vault {
         self.open_note(name, editor_data)
     }
 
-    pub fn open_note(&self, name_str: &str, editor_data: &EditorData) -> Result<(), Error> {
+    pub fn open_note(&self, name_str: &str, editor_data: &EditorData) -> JotResult<()> {
         let location = self.generate_location();
         let name = name_str.to_string();
 
@@ -285,23 +286,23 @@ impl Vault {
         } else if let Some(note_name) = self.get_note_from_alias(&name) {
             run_editor(editor_data, &note_name, &location)?;
         } else {
-            return Err(Error::InvalidName);
+            return Err(anyhow!("{}", Error::InvalidName));
         }
 
         Ok(())
     }
 
 
-    pub fn change_folder(&mut self, path: &PathBuf) -> Result<(), Error> {
+    pub fn change_folder(&mut self, path: &PathBuf) -> JotResult<()> {
         let vault_path = join_paths(vec![self.get_location().to_str().unwrap(), self.get_name()]);
         let new_location = process_path(&join_paths(vec![&vault_path, self.get_folder(), path]));
 
         if !new_location.exists() {
-            return Err(Error::PathNotFound);
+            return Err(anyhow!("{}", Error::PathNotFound));
         }
 
         if !new_location.starts_with(&vault_path) {
-            return Err(Error::OutOfBounds);
+            return Err(anyhow!("{}", Error::OutOfBounds));
         }
 
         let mut destination_folder = new_location.strip_prefix(vault_path).unwrap();

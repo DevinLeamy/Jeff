@@ -5,7 +5,7 @@ use crate::utils::join_paths;
 use crate::items::{Item, Error, Folder};
 use crate::output::error::JotResult;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Note {
     location: PathBuf,
 }

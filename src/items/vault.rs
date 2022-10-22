@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::fs::{remove_dir_all, rename, create_dir_all};
 use anyhow::anyhow;
 
-use crate::items::{Item, Error, Note, Folder};
+use crate::items::{Collection, Item, Error, Note, Folder};
 use crate::traits::FileIO;
 use crate::utils::{join_paths, get_absolute_path};
 use crate::enums::VaultItem;
 use crate::output::error::{Error::*, JotResult};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vault {
     /// name of the vault
     name: String,
@@ -22,6 +22,16 @@ pub struct Vault {
     notes: Vec<Note>,
     /// persisted data locally managed by the vault 
     vault_store: VaultStore,
+}
+
+impl Collection for Vault {
+    fn get_notes(&self) -> Vec<Note> {
+        self.notes.clone() 
+    }
+
+    fn get_folders(&self) -> Vec<Folder> {
+        self.folders.clone()
+    }
 }
 
 impl Item for Vault {
@@ -110,6 +120,7 @@ impl Vault {
             vault_store: VaultStore::load_path(
                 join_paths(vec![
                     absolute_path.to_str().unwrap(),
+                    ".jot/data",
                 ])
             ),
         };
@@ -127,11 +138,9 @@ impl Vault {
             let item_location = item.unwrap().path();
 
             if Folder::is_jot_folder(&item_location) {
-                println!("Loading: {:?}", item_location);
                 let folder = Folder::load(item_location)?;
                 self.folders.push(folder);
             } else if Note::is_jot_note(&item_location) {
-                println!("Found note: {:?}", item_location);
                 let note = Note::new(item_location)?;
                 self.notes.push(note);
             }
@@ -170,24 +179,28 @@ impl Vault {
 
     pub fn set_alias() {}
 
-    pub fn open_note() {}
-
     pub fn change_folder() {}
 
     pub fn rename_vault_item() {}
 
     pub fn remove_vault_item() {}
 
-    pub fn move_vault_item() {
-
-    }
+    pub fn move_vault_item() {}
 
     pub fn list(&self) {
-        println!("TODO: List items in the current folder")
+        println!("{}", self.get_name());
+
+        for folder in self.get_folders_sorted() {
+            folder.list_with_buffer("".to_string());
+        }
+
+        for note in self.get_notes_sorted() {
+            println!("├── {}", note.get_name());
+        }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VaultStore {
     /// path to the current active folder inside of the vault
     current_folder: Option<String>,

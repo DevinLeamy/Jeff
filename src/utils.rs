@@ -1,4 +1,3 @@
-use crate::{enums::Item, output::error::Error, state::config::EditorData};
 use chrono;
 use fs_extra::{dir::CopyOptions, move_items};
 use std::{
@@ -7,6 +6,9 @@ use std::{
     process::Command,
     collections::HashMap,
 };
+
+use crate::{enums::Item, output::error::{Error, JotResult}, state::config::EditorData};
+use anyhow::anyhow;
 
 fn valid_name(name: &str) -> bool {
     name.chars().all(|char| !r#"\/?%*:|"<>"#.contains(char))
@@ -41,17 +43,17 @@ pub fn process_path(path: &Path) -> PathBuf {
     processed_path
 }
 
-pub fn create_item(item_type: Item, name: &str, location: &Path) -> Result<PathBuf, Error> {
+pub fn create_item(item_type: Item, name: &str, location: &Path) -> JotResult<PathBuf> {
     let path = generate_item_path(&item_type, name, location)?;
 
     if let Err(error) = create_item_collect(&item_type, &path) {
-        return Err(match error.kind() {
+        return Err(anyhow!("{}", match error.kind() {
             std::io::ErrorKind::NotFound => Error::PathNotFound,
             std::io::ErrorKind::AlreadyExists => {
                 Error::ItemAlreadyExists(item_type, name.to_owned())
             }
             _ => Error::Undefined(error),
-        });
+        }));
     }
 
     Ok(path)
@@ -67,14 +69,14 @@ fn create_item_collect(item_type: &Item, path: &Path) -> Result<(), std::io::Err
     Ok(())
 }
 
-pub fn remove_item(item_type: Item, name: &str, location: &Path) -> Result<(), Error> {
+pub fn remove_item(item_type: Item, name: &str, location: &Path) -> JotResult<()> {
     let path = generate_item_path(&item_type, name, location)?;
 
     if let Err(error) = remove_item_collect(&item_type, &path) {
-        return Err(match error.kind() {
+        return Err(anyhow!("{}", match error.kind() {
             std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
             _ => Error::Undefined(error),
-        });
+        }));
     }
 
     Ok(())
@@ -95,19 +97,19 @@ pub fn rename_item(
     name: &str,
     new_name: &str,
     location: &Path,
-) -> Result<PathBuf, Error> {
+) -> JotResult<PathBuf> {
     if new_name == name {
-        return Err(Error::SameName);
+        return Err(anyhow!("{}", Error::SameName));
     }
 
     let original_path = generate_item_path(&item_type, name, location)?;
     let new_path = generate_item_path(&item_type, new_name, location)?;
 
     if let Err(error) = rename(original_path, &new_path) {
-        return Err(match error.kind() {
+        return Err(anyhow!("{}", match error.kind() {
             std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
             _ => Error::Undefined(error),
-        });
+        }));
     }
 
     Ok(new_path)
@@ -118,14 +120,14 @@ pub fn move_item(
     name: &str,
     original_location: &PathBuf,
     new_location: &Path,
-) -> Result<PathBuf, Error> {
+) -> JotResult<PathBuf> {
     if new_location == original_location {
-        return Err(Error::SameLocation);
+        return Err(anyhow!("{}", Error::SameLocation));
     }
 
     let new_path = generate_item_path(&item_type, name, new_location)?;
     if new_path.exists() {
-        return Err(Error::ItemAlreadyExists(item_type, name.to_owned()));
+        return Err(anyhow!("{}", Error::ItemAlreadyExists(item_type, name.to_owned())));
     }
 
     let original_path = vec![generate_item_path(&item_type, name, original_location)?];
@@ -134,18 +136,18 @@ pub fn move_item(
     Ok(new_path)
 }
 
-pub fn run_editor(editor_data: &EditorData, name: &str, location: &Path) -> Result<(), Error> {
+pub fn run_editor(editor_data: &EditorData, name: &str, location: &Path) -> JotResult<()> {
     let path = generate_item_path(&Item::Nt, name, location)?;
 
     if !path.exists() {
-        return Err(Error::ItemNotFound(Item::Nt, name.to_string()));
+        return Err(anyhow!("{}", Error::ItemNotFound(Item::Nt, name.to_string())));
     }
 
     if let Err(error) = run_editor_collect(editor_data, &path) {
-        return Err(match error.kind() {
+        return Err(anyhow!("{}", match error.kind() {
             std::io::ErrorKind::NotFound => Error::EditorNotFound,
             _ => Error::Undefined(error),
-        });
+        }));
     }
 
     Ok(())
@@ -199,9 +201,9 @@ pub fn _list_folder_and_contents(folder_name: String, location: &PathBuf, aliase
 }
 
 
-fn generate_item_path(item_type: &Item, name: &str, location: &Path) -> Result<PathBuf, Error> {
+fn generate_item_path(item_type: &Item, name: &str, location: &Path) -> JotResult<PathBuf> {
     if !valid_name(name) {
-        return Err(Error::InvalidName);
+        return Err(anyhow!("{}", Error::InvalidName));
     }
 
     let mut path = join_paths(vec![location.to_str().unwrap(), name]);

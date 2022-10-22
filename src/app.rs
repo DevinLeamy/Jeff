@@ -1,6 +1,6 @@
 use crate::{
-    enums::{Item, VaultItem},
-    output::{error::Error, message::Message},
+    enums::{Item as ItemType, VaultItem as VaultItemType},
+    output::{error::{Error, JotResult}, message::Message},
     state::{
         args::{Args, Command},
         config::Config,
@@ -8,6 +8,8 @@ use crate::{
     },
     traits::FileIO,
     utils::daily_note_name,
+    items::{Collection, Item},
+    editor:: Editor,
 };
 use clap::Parser;
 
@@ -15,18 +17,22 @@ pub struct App {
     args: Args,
     config: Config,
     vaults: Vaults,
+    editor: Editor
 }
 
 impl App {
     pub fn new() -> Self {
+        let config = Config::load();
+        let editor_data = config.get_editor_data();
         App {
             args: Args::parse(),
-            config: Config::load(),
+            config: config,
             vaults: Vaults::load(),
+            editor: Editor::from_config(editor_data),
         }
     }
 
-    pub fn handle_args(&mut self) -> Result<Message, Error> {
+    pub fn handle_args(&mut self) -> JotResult<Message> {
         match &self.args.command {
             Command::Vault {
                 show_loc,
@@ -35,7 +41,7 @@ impl App {
             } => {
                 if let (Some(name), Some(location)) = (name, location) {
                     self.vaults.create_vault(name, location)?;
-                    return Ok(Message::ItemCreated(Item::Vl, name.to_owned()));
+                    return Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()));
                 } else if name.is_some() && *show_loc {
                     let name = name.clone().unwrap();
                     self.vaults.show_vault_location(name);
@@ -91,11 +97,10 @@ impl App {
                 // return Ok(Message::Empty);
             }
             Command::Open { name } => {
-                todo!()
-                // self.vaults
-                //     .ref_current()?
-                //     .open_note(name, self.config.get_editor_data())?;
-                // return Ok(Message::Empty);
+                let note = self.vaults.ref_current()?.get_note_with_name(name)?; //, self.config.get_editor_data())?;
+                self.editor.open_note(note)?;
+                
+                return Ok(Message::Empty);
             }
             Command::Folder { name } => {
                 todo!()

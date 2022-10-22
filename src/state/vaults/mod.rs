@@ -80,25 +80,25 @@ impl Vaults {
         current_vault_name.is_some() && vault_name == current_vault_name.unwrap()
     }
 
-    pub fn ref_current(&self) -> Result<&Vault, Error> {
+    pub fn ref_current(&self) -> JotResult<&Vault> {
         if self.current.is_none() {
-            return Err(Error::NotInsideVault);
+            return Err(anyhow!("{}", Error::NotInsideVault));
         }
 
         Ok(self.current.as_ref().unwrap())
     }
 
-    pub fn mut_current(&mut self) -> Result<&mut Vault, Error> {
+    pub fn mut_current(&mut self) -> JotResult<&mut Vault> {
         if self.current.is_none() {
-            return Err(Error::NotInsideVault);
+            return Err(anyhow!("{}", Error::NotInsideVault));
         }
 
         Ok(self.current.as_mut().unwrap())
     }
 
-    pub fn create_vault(&mut self, name: &str, location: &Path) -> Result<(), Error> {
+    pub fn create_vault(&mut self, name: &str, location: &Path) -> JotResult<()> {
         if self.data.vault_exists(name) {
-            return Err(Error::VaultAlreadyExists(name.to_owned()));
+            return Err(anyhow!("{}", Error::VaultAlreadyExists(name.to_owned())));
         }
 
         let location = process_path(location);
@@ -112,7 +112,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn remove_vault(&mut self, name: &str) -> Result<(), Error> {
+    pub fn remove_vault(&mut self, name: &str) -> JotResult<()> {
         todo!()
         // if let Some(vault_location) = self.data.get_vault_location(name) {
         //     remove_item(Item::Vl, name, vault_location)?;
@@ -154,7 +154,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn move_vault(&mut self, name: &str, new_location: &Path) -> Result<(), Error> {
+    pub fn move_vault(&mut self, name: &str, new_location: &Path) -> JotResult<()> {
         todo!()
         // if !self.data.vault_exists(name) {
         //     return Err(Error::VaultNotFound(name.to_owned()))
@@ -177,7 +177,7 @@ impl Vaults {
         item_type: &VaultItem,
         name: &str,
         vault_name: &str,
-    ) -> Result<(), Error> {
+    ) -> JotResult<()> {
         todo!()
         // if let Some(vault_location) = self.data.get_vault_location(vault_name) {
         //     self.ref_current()?
@@ -189,14 +189,14 @@ impl Vaults {
         // }
     }
 
-    pub fn enter_vault(&mut self, name: &str) -> Result<(), Error> {
+    pub fn enter_vault(&mut self, name: &str) -> JotResult<()> {
         if !self.data.vault_exists(name) {
-            return Err(Error::VaultNotFound(name.to_owned()));
+            return Err(anyhow!("{}", Error::VaultNotFound(name.to_owned())));
         }
 
         if let Some(current_vault_name) = self.data.get_current_vault() {
             if name == current_vault_name {
-                return Err(Error::AlreadyInVault(name.to_owned()));
+                return Err(anyhow!("{}", Error::AlreadyInVault(name.to_owned())));
             }
         }
 

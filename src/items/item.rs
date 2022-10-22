@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::items::Error;
 use crate::output::error::JotResult;
 
-pub trait Item {
+pub trait Item : Clone {
     fn get_location(&self) -> &PathBuf;
     fn get_name(&self) -> String;
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()>;

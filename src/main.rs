@@ -5,6 +5,7 @@ mod state;
 mod traits;
 mod utils;
 mod items;
+mod editor;
 
 use crate::{
     app::App,
@@ -18,6 +19,6 @@ fn main() {
             Message::Empty => (),
             _ => println!("{}", Output::Message(msg)),
         },
-        Err(err) => println!("{}", Output::Error(err)),
+        Err(message) => println!("{}", message),
     }
 }
