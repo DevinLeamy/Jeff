@@ -262,45 +262,15 @@ impl VaultStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{thread, time};
-    use std::panic::UnwindSafe;
-    const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
-
-    fn sleep() {
-        let ten_millis = time::Duration::from_millis(100);
-        thread::sleep(ten_millis);
-    }
-
-    fn setup() {
-        let _res = create_dir_all(PathBuf::from(TEST_HOME));
-        sleep();
-    }
-
-    fn run_test<T>(test: T)
-    where 
-        T: FnOnce() -> () + UnwindSafe 
-    {
-        setup();
-        let result = std::panic::catch_unwind(test); 
-        teardown();
-
-        assert!(result.is_ok())
-    }
-
-    fn teardown() -> () {
-        let _res = remove_dir_all(PathBuf::from(TEST_HOME));
-        sleep();
-    }
-
-    fn path(name: &str) -> PathBuf {
-        format!("{}/{}", TEST_HOME, name).into()
-    }
+    use crate::tests::*;
 
     #[test]
     fn create_vault_test() {
         run_test(|| {
-            let new_vault_path = path("new_vault"); 
+            let new_vault_path = test_path("new_vault"); 
             Vault::create(new_vault_path.clone()).unwrap();
+
+            sleep();
 
             assert!(new_vault_path.exists() && new_vault_path.is_dir());
         });
@@ -317,10 +287,12 @@ mod tests {
     #[test]
     fn cannot_create_duplicate_vaults() {
         run_test(|| {
-            let vault_1 = path("vault_1");
-            let vault_2 = path("vault_1");
+            let vault_1 = test_path("vault_1");
+            let vault_2 = test_path("vault_1");
 
             Vault::create(vault_1.clone()).unwrap();
+
+            sleep();
 
             assert!(vault_1.exists() && vault_1.is_dir());
             match Vault::create(vault_2) {

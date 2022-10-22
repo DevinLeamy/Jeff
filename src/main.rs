@@ -6,6 +6,8 @@ mod traits;
 mod utils;
 mod items;
 mod editor;
+mod prelude;
+mod tests;
 
 use crate::{
     app::App,

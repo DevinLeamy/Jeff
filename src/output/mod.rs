@@ -3,7 +3,7 @@ pub mod message;
 
 use std::fmt::Display;
 
-use error::Error;
+pub use error::{Error, JotResult};
 pub use message::Message;
 
 pub enum Output {
