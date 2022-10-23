@@ -30,7 +30,13 @@ impl Item for Folder {
     }
 
     fn get_name(&self) -> String {
-        self.location.display().to_string()
+        self.location
+            .to_owned()
+            .file_stem()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {

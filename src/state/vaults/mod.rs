@@ -140,12 +140,9 @@ impl Vaults {
 
     pub fn rename_vault(&mut self, name: &str, new_name: &str) -> JotResult<()> {
         if self.data.vault_exists(new_name) {
-            return Err(anyhow!(
-                "{}",
-                Error::VaultAlreadyExists(new_name.to_owned())
-            ));
+            return Err(anyhow!(Error::VaultAlreadyExists(new_name.to_owned())));
         } else if !self.data.vault_exists(name) {
-            return Err(anyhow!("{}", Error::VaultNotFound(name.to_owned())));
+            return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
         }
 
         let vault_parent_dir = self.data.get_vault_location(name).unwrap();
@@ -155,10 +152,8 @@ impl Vaults {
         vault.rename(new_name.to_owned())?;
         self.data.rename_vault(name, new_name.to_owned());
 
-        if let Some(current_vault) = self.data.get_current_vault() {
-            if name == current_vault {
-                self.data.set_current_vault(Some(new_name.to_owned()));
-            }
+        if self.data.get_current_vault() == Some(&name.to_string()) {
+            self.data.set_current_vault(Some(new_name.to_string()));
         }
 
         Ok(())

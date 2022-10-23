@@ -140,7 +140,7 @@ impl Item for Vault {
     fn is_valid_path(absolute_path: &PathBuf) -> bool {
         // TOOD: add check to ensure that this vault
         // is not inside of another vault
-        absolute_path.is_dir() && absolute_path.file_name().unwrap() != ".jot"
+        !absolute_path.is_file() && absolute_path.file_name().unwrap() != ".jot"
     }
 }
 

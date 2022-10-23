@@ -165,7 +165,23 @@ impl App {
                 name,
                 new_name,
             } => {
-                todo!()
+                match item_type {
+                    ItemType::Fd | ItemType::Folder => {
+                        let vault = self.vaults.ref_current()?;
+                        let mut folder = vault.get_folder_with_name(name)?;
+
+                        folder.rename(new_name.to_owned())?;
+                    }
+                    ItemType::Nt | ItemType::Note => {
+                        let vault = self.vaults.ref_current()?;
+                        let mut note = vault.get_note_with_name(name)?;
+
+                        note.rename(new_name.to_owned())?;
+                    }
+                    ItemType::Vl | ItemType::Vault => {
+                        self.vaults.rename_vault(name, new_name)?;
+                    }
+                }
                 // match item_type {
                 //     Item::Vl | Item::Vault => self.vaults.rename_vault(name, new_name)?,
                 //     _ => self.vaults.ref_current()?.rename_vault_item(
@@ -174,11 +190,11 @@ impl App {
                 //         new_name,
                 //     )?,
                 // };
-                // return Ok(Message::ItemRenamed(
-                //     item_type.to_owned(),
-                //     name.to_owned(),
-                //     new_name.to_owned(),
-                // ));
+                return Ok(Message::ItemRenamed(
+                    item_type.to_owned(),
+                    name.to_owned(),
+                    new_name.to_owned(),
+                ));
             }
             Command::Move {
                 item_type,
@@ -201,12 +217,13 @@ impl App {
                 name,
                 vault_name,
             } => {
-                self.vaults.move_to_vault(item_type, name, vault_name)?;
-                return Ok(Message::ItemVMoved(
-                    item_type.to_owned(),
-                    name.to_owned(),
-                    vault_name.to_owned(),
-                ));
+                todo!()
+                // self.vaults.move_to_vault(item_type, name, vault_name)?;
+                // return Ok(Message::ItemVMoved(
+                //     item_type.to_owned(),
+                //     name.to_owned(),
+                //     vault_name.to_owned(),
+                // ));
             }
             Command::List => {
                 self.vaults.ref_current()?.list();
