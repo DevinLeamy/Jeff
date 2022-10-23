@@ -50,10 +50,16 @@ impl Display for Message {
                     value
                 ),
                 Message::NoteAliasCreated(note_name, alias_name) => {
-                    format!("created alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m", note_name, alias_name)
-                },
+                    format!(
+                        "created alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m",
+                        note_name, alias_name
+                    )
+                }
                 Message::NoteAliasRemoved(note_name, alias_name) => {
-                    format!("removed alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m", note_name, alias_name)
+                    format!(
+                        "removed alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m",
+                        note_name, alias_name
+                    )
                 }
                 Message::Empty => "".to_string(),
             }

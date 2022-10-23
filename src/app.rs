@@ -1,12 +1,12 @@
 use crate::prelude::*;
-use clap::Parser;
 use anyhow::anyhow;
+use clap::Parser;
 
 pub struct App {
     args: Args,
     config: Config,
     vaults: Vaults,
-    editor: Editor
+    editor: Editor,
 }
 
 impl App {
@@ -23,7 +23,11 @@ impl App {
 
     pub fn handle_args(&mut self) -> JotResult<Message> {
         match &self.args.command {
-            Command::Vault { show_loc, name, location, } => {
+            Command::Vault {
+                show_loc,
+                name,
+                location,
+            } => {
                 if let (Some(name), Some(location)) = (name, location) {
                     self.vaults.create_vault(name, location)?;
                     return Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()));
@@ -44,7 +48,10 @@ impl App {
                 let vault = self.vaults.ref_current()?;
                 let maybe_note = vault.get_note_with_name(name);
                 if let Ok(note) = maybe_note {
-                    return Err(anyhow!("Note with name [{}] already exists", note.get_name()));
+                    return Err(anyhow!(
+                        "Note with name [{}] already exists",
+                        note.get_name()
+                    ));
                 }
 
                 let note_path = Note::generate_abs_path(vault.get_location(), name);
@@ -54,17 +61,20 @@ impl App {
                 return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
             }
             Command::Today { create_if_dne } => {
-                let daily_note_name = daily_note_name(); 
+                let daily_note_name = daily_note_name();
                 let vault = self.vaults.ref_current()?;
-                let maybe_note = vault.get_note_with_name(&format!("{}.md", daily_note_name).to_string());
+                let maybe_note =
+                    vault.get_note_with_name(&format!("{}.md", daily_note_name).to_string());
 
                 if maybe_note.is_err() && !*create_if_dne {
-                    return Err(anyhow!("Daily note does not exist, consider supplying the --create flag"));
+                    return Err(anyhow!(
+                        "Daily note does not exist, consider supplying the --create flag"
+                    ));
                 }
 
                 /*
-                 * Edit the daily note. If --create is supplied, create and edit the 
-                 * daily note. 
+                 * Edit the daily note. If --create is supplied, create and edit the
+                 * daily note.
                  */
                 let message;
                 let note = if *create_if_dne {
@@ -80,27 +90,31 @@ impl App {
 
                 Ok(message)
             }
-            Command::Alias { name, maybe_alias, remove_alias } => {
+            Command::Alias {
+                name,
+                maybe_alias,
+                remove_alias,
+            } => {
                 todo!()
                 // if *remove_alias {
                 //     let alias_removed = self.vaults
                 //         .mut_current()?
                 //         .remove_alias_from_note(name.to_string())?;
-                    
+
                 //     return Ok(Message::NoteAliasRemoved(name.to_string(), alias_removed))
                 // } else if let Some(alias) = maybe_alias {
                 //     self.vaults
                 //         .mut_current()?
                 //         .set_alias(name.to_string(), alias.to_string())?;
                 //     return Ok(Message::NoteAliasCreated(name.to_string(), alias.to_string()))
-                // } 
+                // }
 
                 // return Ok(Message::Empty);
             }
             Command::Open { name } => {
                 let note = self.vaults.ref_current()?.get_note_with_name(name)?;
                 self.editor.open_note(note)?;
-                
+
                 return Ok(Message::Empty);
             }
             Command::Folder { name } => {
@@ -108,7 +122,10 @@ impl App {
 
                 let maybe_folder = vault.get_folder_with_name(name);
                 if let Ok(folder) = maybe_folder {
-                    return Err(anyhow!("Folder with name [{}] already exists", folder.get_name()));
+                    return Err(anyhow!(
+                        "Folder with name [{}] already exists",
+                        folder.get_name()
+                    ));
                 }
 
                 let folder_path = Folder::generate_abs_path(vault.get_location(), name);
@@ -133,7 +150,11 @@ impl App {
                 // };
                 // return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
             }
-            Command::Rename { item_type, name, new_name, } => {
+            Command::Rename {
+                item_type,
+                name,
+                new_name,
+            } => {
                 todo!()
                 // match item_type {
                 //     Item::Vl | Item::Vault => self.vaults.rename_vault(name, new_name)?,
@@ -149,7 +170,11 @@ impl App {
                 //     new_name.to_owned(),
                 // ));
             }
-            Command::Move { item_type, name, new_location, } => {
+            Command::Move {
+                item_type,
+                name,
+                new_location,
+            } => {
                 todo!()
                 // match item_type {
                 //     Item::Vl | Item::Vault => self.vaults.move_vault(name, new_location)?,
@@ -161,7 +186,11 @@ impl App {
                 // };
                 // return Ok(Message::ItemMoved(item_type.to_owned(), name.to_owned()));
             }
-            Command::Vmove { item_type, name, vault_name, } => {
+            Command::Vmove {
+                item_type,
+                name,
+                vault_name,
+            } => {
                 self.vaults.move_to_vault(item_type, name, vault_name)?;
                 return Ok(Message::ItemVMoved(
                     item_type.to_owned(),
@@ -189,14 +218,10 @@ impl App {
 
 #[test]
 fn open_note_test() {
-    run_test(|| {
-
-    });
+    run_test(|| {});
 }
 
 #[test]
 fn create_note_test() {
-    run_test(|| {
-
-    })
+    run_test(|| {})
 }

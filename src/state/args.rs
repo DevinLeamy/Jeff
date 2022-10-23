@@ -61,7 +61,7 @@ pub enum Command {
     #[clap(alias = "vl")]
     Vault {
         /// show vaults' location
-        #[clap(parse(from_flag), short = 'l', long="location")]
+        #[clap(parse(from_flag), short = 'l', long = "location")]
         show_loc: bool,
         /// name for new vault
         #[clap(value_parser, name = "vault name")]
@@ -74,8 +74,8 @@ pub enum Command {
     /// format: YYYY-MM-DD
     #[clap(override_usage("jt today"))]
     Today {
-        /// create the daily note, if it does not exist 
-        #[clap(parse(from_flag), short = 'c', long="create")]
+        /// create the daily note, if it does not exist
+        #[clap(parse(from_flag), short = 'c', long = "create")]
         // dne = does not exist
         create_if_dne: bool,
     },
@@ -95,14 +95,16 @@ pub enum Command {
         name: String,
     },
     /// creates an alias for a note
-    #[clap(override_usage("jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"))]
+    #[clap(override_usage(
+        "jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"
+    ))]
     #[clap(alias = "al")]
     Alias {
         /// name of the note being given an alias
         #[clap(value_parser, name = "note name")]
         name: String,
         /// remove alias from a note
-        #[clap(parse(from_flag), short='r', long="remove", name="remove")]
+        #[clap(parse(from_flag), short = 'r', long = "remove", name = "remove")]
         remove_alias: bool,
         /// alias being given to the note
         #[clap(value_parser, name = "alias", required_unless_present("remove"))]

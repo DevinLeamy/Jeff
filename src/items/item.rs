@@ -2,13 +2,13 @@ use std::path::PathBuf;
 
 use crate::output::error::JotResult;
 
-pub trait Item : Clone {
+pub trait Item: Clone {
     /// Get the absolute path of an item
     fn get_location(&self) -> &PathBuf;
     /// Get the name of an item. Names do not include file extensions.
     fn get_name(&self) -> String;
     /// Move the given item to a new location.
-    /// 
+    ///
     /// `new_location` - absolute path to the new location
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()>;
     fn rename(&mut self, new_name: String) -> JotResult<()>;
@@ -19,5 +19,3 @@ pub trait Item : Clone {
     /// Determine is the given path is valid for this type of item.
     fn is_valid_path(absolute_path: &PathBuf) -> bool;
 }
-
-

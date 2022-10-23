@@ -1,8 +1,8 @@
 use std::process::Command;
 
-use crate::state::config::EditorData;
-use crate::items::{Note, Item};
+use crate::items::{Item, Note};
 use crate::output::error::JotResult;
+use crate::state::config::EditorData;
 
 pub struct Editor {
     /// CLI name of the editor (ex: "nvim" or "vim")
@@ -21,7 +21,9 @@ impl Editor {
 
     pub fn open_note(&self, note: Note) -> JotResult<()> {
         let note_path = note.get_location();
-        let mut open_editor_command = Command::new(self.name.to_owned()).arg(note_path.to_str().unwrap()).spawn()?;
+        let mut open_editor_command = Command::new(self.name.to_owned())
+            .arg(note_path.to_str().unwrap())
+            .spawn()?;
 
         if self.conflict {
             open_editor_command.wait()?;

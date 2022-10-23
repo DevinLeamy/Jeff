@@ -1,9 +1,9 @@
 use anyhow::anyhow;
 
-use crate::items::{Item, Note, Folder};
-use crate::output::error::{JotResult};
+use crate::items::{Folder, Item, Note};
+use crate::output::error::JotResult;
 
-pub trait Collection : Item {
+pub trait Collection: Item {
     fn get_note_with_name(&self, name: &String) -> JotResult<Note> {
         for note in self.get_notes() {
             if &note.get_name() == name {
@@ -11,7 +11,11 @@ pub trait Collection : Item {
             }
         }
 
-        Err(anyhow!("Note [{}] does not exist in [{}]", name, self.get_name()))
+        Err(anyhow!(
+            "Note [{}] does not exist in [{}]",
+            name,
+            self.get_name()
+        ))
     }
 
     fn get_folder_with_name(&self, name: &String) -> JotResult<Folder> {
@@ -21,7 +25,11 @@ pub trait Collection : Item {
             }
         }
 
-        Err(anyhow!("Folder [{}] does not exist in [{}]", name, self.get_name()))
+        Err(anyhow!(
+            "Folder [{}] does not exist in [{}]",
+            name,
+            self.get_name()
+        ))
     }
 
     fn get_notes(&self) -> Vec<Note>;
@@ -30,7 +38,7 @@ pub trait Collection : Item {
         let mut notes = self.get_notes();
         notes.sort_by_key(|note| note.get_name());
 
-        notes 
+        notes
     }
 
     fn get_folders(&self) -> Vec<Folder>;
@@ -39,6 +47,6 @@ pub trait Collection : Item {
         let mut folders = self.get_folders();
         folders.sort_by_key(|folder| folder.get_name());
 
-        folders 
+        folders
     }
 }

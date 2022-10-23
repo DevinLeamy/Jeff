@@ -1,5 +1,10 @@
 use core::time;
-use std::{path::PathBuf, thread, fs::{create_dir_all, remove_dir_all}, panic::UnwindSafe};
+use std::{
+    fs::{create_dir_all, remove_dir_all},
+    panic::UnwindSafe,
+    path::PathBuf,
+    thread,
+};
 
 const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
 
@@ -14,11 +19,11 @@ fn setup() {
 }
 
 pub fn run_test<T>(test: T)
-where 
-    T: FnOnce() -> () + UnwindSafe 
+where
+    T: FnOnce() -> () + UnwindSafe,
 {
     setup();
-    let result = std::panic::catch_unwind(test); 
+    let result = std::panic::catch_unwind(test);
     teardown();
 
     assert!(result.is_ok())

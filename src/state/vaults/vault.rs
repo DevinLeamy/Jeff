@@ -1,11 +1,11 @@
-use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
 use crate::output::Error;
+use crate::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vault {
@@ -13,7 +13,7 @@ pub struct Vault {
     location: Option<PathBuf>,
     folder: PathBuf,
     history: Vec<(String, PathBuf)>,
-    aliases: HashMap<String, String>, 
+    aliases: HashMap<String, String>,
 }
 
 impl Default for Vault {
@@ -81,9 +81,9 @@ impl Vault {
          * Check if a note is using the given name.
          */
         if notes.contains(&new_name) {
-            return true
+            return true;
         }
-        
+
         /*
          * Check if a note alias has the given name.
          */
@@ -99,7 +99,7 @@ impl Vault {
     /**
      * Returns the list of all notes stored in this vault.
      * Note: returned notes are file stem and do not have  
-     * the .md extension 
+     * the .md extension
      */
     pub fn get_notes(&self) -> Vec<String> {
         let path = self.generate_location();
@@ -136,7 +136,7 @@ impl Vault {
     }
 
     /**
-     * Check if the vault contains a note with the 
+     * Check if the vault contains a note with the
      * give name.
      */
     fn contains_note(&self, note_name: &String) -> bool {
@@ -149,7 +149,7 @@ impl Vault {
     fn get_note_from_alias(&self, alias: &String) -> Option<String> {
         for (note, note_alias) in self.aliases.iter() {
             if note_alias == alias {
-                return Some(note.clone())
+                return Some(note.clone());
             }
         }
 
@@ -170,7 +170,6 @@ impl Vault {
     }
 
     pub fn remove_alias_from_note(&mut self, note_name: String) -> Result<String, Error> {
-
         if self.aliases.contains_key(&note_name) {
             let alias_removed = self.aliases.remove(&note_name).unwrap();
             self.store();
@@ -270,7 +269,7 @@ impl Vault {
         let name = name_str.to_string();
 
         /*
-         * Check if the name is a valid note name, then check 
+         * Check if the name is a valid note name, then check
          * if the name is alias to a note. If neither is true, throw
          * an error.
          */
@@ -284,7 +283,6 @@ impl Vault {
 
         Ok(())
     }
-
 
     pub fn change_folder(&mut self, path: &PathBuf) -> JotResult<()> {
         let vault_path = join_paths(vec![self.get_location().to_str().unwrap(), self.get_name()]);

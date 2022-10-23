@@ -23,7 +23,6 @@ pub struct Config {
     editor_data: EditorData,
 }
 
-
 impl Default for Config {
     fn default() -> Self {
         Config {
@@ -46,7 +45,7 @@ impl FileIO for Config {
 
 impl Config {
     pub fn get_editor_data(&self) -> EditorData {
-       self.editor_data.clone()
+        self.editor_data.clone()
     }
 
     pub fn set_config(&mut self, config_type: &ConfigType, value: &String) {

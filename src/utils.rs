@@ -1,13 +1,17 @@
 use chrono;
 use fs_extra::{dir::CopyOptions, move_items};
 use std::{
+    collections::HashMap,
     fs::{remove_dir_all, remove_file, rename, DirBuilder, File},
     path::{Path, PathBuf},
     process::Command,
-    collections::HashMap,
 };
 
-use crate::{enums::Item, output::error::{Error, JotResult}, state::config::EditorData};
+use crate::{
+    enums::Item,
+    output::error::{Error, JotResult},
+    state::config::EditorData,
+};
 use anyhow::anyhow;
 
 fn valid_name(name: &str) -> bool {
@@ -47,13 +51,16 @@ pub fn create_item(item_type: Item, name: &str, location: &Path) -> JotResult<Pa
     let path = generate_item_path(&item_type, name, location)?;
 
     if let Err(error) = create_item_collect(&item_type, &path) {
-        return Err(anyhow!("{}", match error.kind() {
-            std::io::ErrorKind::NotFound => Error::PathNotFound,
-            std::io::ErrorKind::AlreadyExists => {
-                Error::ItemAlreadyExists(item_type, name.to_owned())
+        return Err(anyhow!(
+            "{}",
+            match error.kind() {
+                std::io::ErrorKind::NotFound => Error::PathNotFound,
+                std::io::ErrorKind::AlreadyExists => {
+                    Error::ItemAlreadyExists(item_type, name.to_owned())
+                }
+                _ => Error::Undefined(error),
             }
-            _ => Error::Undefined(error),
-        }));
+        ));
     }
 
     Ok(path)
@@ -73,10 +80,13 @@ pub fn remove_item(item_type: Item, name: &str, location: &Path) -> JotResult<()
     let path = generate_item_path(&item_type, name, location)?;
 
     if let Err(error) = remove_item_collect(&item_type, &path) {
-        return Err(anyhow!("{}", match error.kind() {
-            std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
-            _ => Error::Undefined(error),
-        }));
+        return Err(anyhow!(
+            "{}",
+            match error.kind() {
+                std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
+                _ => Error::Undefined(error),
+            }
+        ));
     }
 
     Ok(())
@@ -106,10 +116,13 @@ pub fn rename_item(
     let new_path = generate_item_path(&item_type, new_name, location)?;
 
     if let Err(error) = rename(original_path, &new_path) {
-        return Err(anyhow!("{}", match error.kind() {
-            std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
-            _ => Error::Undefined(error),
-        }));
+        return Err(anyhow!(
+            "{}",
+            match error.kind() {
+                std::io::ErrorKind::NotFound => Error::ItemNotFound(item_type, name.to_owned()),
+                _ => Error::Undefined(error),
+            }
+        ));
     }
 
     Ok(new_path)
@@ -127,7 +140,10 @@ pub fn move_item(
 
     let new_path = generate_item_path(&item_type, name, new_location)?;
     if new_path.exists() {
-        return Err(anyhow!("{}", Error::ItemAlreadyExists(item_type, name.to_owned())));
+        return Err(anyhow!(
+            "{}",
+            Error::ItemAlreadyExists(item_type, name.to_owned())
+        ));
     }
 
     let original_path = vec![generate_item_path(&item_type, name, original_location)?];
@@ -140,21 +156,29 @@ pub fn run_editor(editor_data: &EditorData, name: &str, location: &Path) -> JotR
     let path = generate_item_path(&Item::Nt, name, location)?;
 
     if !path.exists() {
-        return Err(anyhow!("{}", Error::ItemNotFound(Item::Nt, name.to_string())));
+        return Err(anyhow!(
+            "{}",
+            Error::ItemNotFound(Item::Nt, name.to_string())
+        ));
     }
 
     if let Err(error) = run_editor_collect(editor_data, &path) {
-        return Err(anyhow!("{}", match error.kind() {
-            std::io::ErrorKind::NotFound => Error::EditorNotFound,
-            _ => Error::Undefined(error),
-        }));
+        return Err(anyhow!(
+            "{}",
+            match error.kind() {
+                std::io::ErrorKind::NotFound => Error::EditorNotFound,
+                _ => Error::Undefined(error),
+            }
+        ));
     }
 
     Ok(())
 }
 
 fn run_editor_collect(editor_data: &EditorData, path: &Path) -> Result<(), std::io::Error> {
-    let mut cmd = Command::new(editor_data.editor.to_owned()).arg(path.to_str().unwrap()).spawn()?;
+    let mut cmd = Command::new(editor_data.editor.to_owned())
+        .arg(path.to_str().unwrap())
+        .spawn()?;
 
     if editor_data.conflict {
         cmd.wait()?;
@@ -181,7 +205,11 @@ pub fn list_notes(notes: &Vec<String>, aliases: &HashMap<String, String>) {
     list_notes_with_display(notes, aliases, display_fn);
 }
 
-pub fn list_notes_with_display(notes: &Vec<String>, aliases: &HashMap<String, String>, display_fn: fn(&String, Option<&String>, bool) -> ()) {
+pub fn list_notes_with_display(
+    notes: &Vec<String>,
+    aliases: &HashMap<String, String>,
+    display_fn: fn(&String, Option<&String>, bool) -> (),
+) {
     let mut sorted_notes = notes.clone();
     sorted_notes.sort();
 
@@ -192,14 +220,20 @@ pub fn list_notes_with_display(notes: &Vec<String>, aliases: &HashMap<String, St
     }
 }
 
-pub fn list_folder_and_contents(folder_name: String, location: &PathBuf, aliases: &HashMap<String, String>) {
-    
+pub fn list_folder_and_contents(
+    folder_name: String,
+    location: &PathBuf,
+    aliases: &HashMap<String, String>,
+) {
 }
 
-pub fn _list_folder_and_contents(folder_name: String, location: &PathBuf, aliases: &HashMap<String, String>, buffer: String) {
-     
+pub fn _list_folder_and_contents(
+    folder_name: String,
+    location: &PathBuf,
+    aliases: &HashMap<String, String>,
+    buffer: String,
+) {
 }
-
 
 fn generate_item_path(item_type: &Item, name: &str, location: &Path) -> JotResult<PathBuf> {
     if !valid_name(name) {
@@ -216,10 +250,10 @@ fn generate_item_path(item_type: &Item, name: &str, location: &Path) -> JotResul
 }
 
 fn generate_date_string() -> String {
-     let local_timestamp = chrono::offset::Local::now();
-     let local_date = local_timestamp.date_naive();
+    let local_timestamp = chrono::offset::Local::now();
+    let local_date = local_timestamp.date_naive();
 
-     local_date.to_string()
+    local_date.to_string()
 }
 
 pub fn daily_note_name() -> String {

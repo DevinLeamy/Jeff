@@ -1,4 +1,4 @@
-mod utils;
 mod tests;
+mod utils;
 
 pub use utils::*;

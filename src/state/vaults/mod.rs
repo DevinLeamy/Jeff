@@ -3,14 +3,17 @@ pub mod vault;
 
 use crate::{
     enums::{Item, VaultItem},
+    items::{Error as IOError, Item as ItemTrait, Vault},
     output::error::{Error, JotResult},
     traits::FileIO,
-    utils::{create_item, join_paths, move_item, process_path, remove_item, rename_item, get_absolute_path},
-    items::{Item as ItemTrait, Vault, Error as IOError},
+    utils::{
+        create_item, get_absolute_path, join_paths, move_item, process_path, remove_item,
+        rename_item,
+    },
 };
+use anyhow::anyhow;
 use data::Data;
 use std::path::{Path, PathBuf};
-use anyhow::anyhow;
 
 #[derive(Debug)]
 pub struct Vaults {
@@ -33,7 +36,7 @@ impl Vaults {
         get_absolute_path(vault_parent_dir, name)
     }
 
-    fn load_current_vault(&mut self) -> JotResult<()>{
+    fn load_current_vault(&mut self) -> JotResult<()> {
         self.current = if let Some(current_vault_name) = self.data.get_current_vault() {
             let vault_absolute_path = self.get_vault_path(current_vault_name);
             let current_vault = Vault::load(vault_absolute_path)?;
@@ -67,7 +70,11 @@ impl Vaults {
     pub fn show_vault_location(&self, vault_name: String) {
         if let Some(vault_location) = self.data.get_vault_location(vault_name.as_str()) {
             if self.is_current_vault(&vault_name) {
-                println!("👉 \x1b[0;34m{}\x1b[0m \t {}", vault_name, vault_location.display());
+                println!(
+                    "👉 \x1b[0;34m{}\x1b[0m \t {}",
+                    vault_name,
+                    vault_location.display()
+                );
             } else {
                 println!("{} \t {}", vault_name, vault_location.display());
             }
@@ -132,7 +139,10 @@ impl Vaults {
 
     pub fn rename_vault(&mut self, name: &str, new_name: &str) -> JotResult<()> {
         if self.data.vault_exists(new_name) {
-            return Err(anyhow!("{}", Error::VaultAlreadyExists(new_name.to_owned())));
+            return Err(anyhow!(
+                "{}",
+                Error::VaultAlreadyExists(new_name.to_owned())
+            ));
         } else if !self.data.vault_exists(name) {
             return Err(anyhow!("{}", Error::VaultNotFound(name.to_owned())));
         }
@@ -144,7 +154,6 @@ impl Vaults {
         vault.rename(new_name.to_owned())?;
         self.data.rename_vault(name, new_name.to_owned());
 
-        
         if let Some(current_vault) = self.data.get_current_vault() {
             if name == current_vault {
                 self.data.set_current_vault(Some(new_name.to_owned()));

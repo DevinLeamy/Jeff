@@ -1,13 +1,13 @@
+mod collection;
 mod folder;
+mod item;
 mod note;
 mod vault;
-mod item;
-mod collection;
 
+pub use collection::*;
 pub use folder::*;
+pub use item::*;
 pub use note::*;
 pub use vault::*;
-pub use item::*;
-pub use collection::*;
 
 pub type Error = std::io::Error;

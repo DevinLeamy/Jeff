@@ -1,13 +1,13 @@
 mod app;
+mod editor;
 mod enums;
+mod items;
 mod output;
+mod prelude;
 mod state;
+mod tests;
 mod traits;
 mod utils;
-mod items;
-mod editor;
-mod prelude;
-mod tests;
 
 use crate::{
     app::App,

@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-use std::fs::{remove_dir_all, rename, create_dir_all};
 use anyhow::anyhow;
+use std::fs::{create_dir_all, remove_dir_all, rename};
+use std::path::PathBuf;
 
 use crate::prelude::*;
 
@@ -13,11 +13,14 @@ pub struct Folder {
 
 impl Collection for Folder {
     fn get_notes(&self) -> Vec<Note> {
-        self.notes.clone() 
+        self.notes.clone()
     }
 
     fn get_folders(&self) -> Vec<Folder> {
-        self.folders.iter().map(|folder_box| *folder_box.clone()).collect::<Vec<Folder>>()
+        self.folders
+            .iter()
+            .map(|folder_box| *folder_box.clone())
+            .collect::<Vec<Folder>>()
     }
 }
 
@@ -53,18 +56,15 @@ impl Item for Folder {
      * Deletes the folder and all of its contents.
      */
     fn delete(&self) -> JotResult<()> {
-        // TODO: make sure the user is prompted before executing 
-        // NOTE: this could potentially delete a lot of information! 
+        // TODO: make sure the user is prompted before executing
+        // NOTE: this could potentially delete a lot of information!
         remove_dir_all(&self.location)?;
 
         Ok(())
     }
 
     fn generate_abs_path(parent_dir: &PathBuf, folder_name: &String) -> PathBuf {
-        join_paths(vec![
-            parent_dir.to_str().unwrap(),
-            folder_name,
-        ])
+        join_paths(vec![parent_dir.to_str().unwrap(), folder_name])
     }
     /**
      * Creates a new folder at the given location.
@@ -108,7 +108,7 @@ impl Item for Folder {
     }
 
     /**
-     * Check if a given location points to a valid 
+     * Check if a given location points to a valid
      * `jot` [Folder]
      */
     fn is_valid_path(location: &PathBuf) -> bool {
@@ -117,7 +117,6 @@ impl Item for Folder {
 }
 
 impl Folder {
-    
     /**
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
@@ -137,8 +136,6 @@ impl Folder {
 
         Ok(())
     }
-
-    
 
     pub fn list_with_buffer(&self, buffer: String) {
         println!("├── {}{}", buffer, self.get_name());
