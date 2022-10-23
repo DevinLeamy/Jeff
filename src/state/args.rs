@@ -1,4 +1,4 @@
-use crate::enums::{ConfigType, Item, VaultItem};
+use crate::enums::{ConfigType, Item as ItemType, VaultItem as VaultItemType};
 use clap::{AppSettings, Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -137,7 +137,7 @@ pub enum Command {
     Remove {
         /// remove a vault (or vl) | note (or nt) | folder (or fd)
         #[clap(value_enum, value_parser, name = "item type")]
-        item_type: Item,
+        item_type: ItemType,
         /// name of item to be removed
         #[clap(value_parser, name = "name")]
         name: String,
@@ -147,7 +147,7 @@ pub enum Command {
     Rename {
         /// rename a vault (or vl) | note (or nt) | folder (or fd)
         #[clap(value_enum, value_parser, name = "item type")]
-        item_type: Item,
+        item_type: ItemType,
         /// name of item to be renamed
         #[clap(value_parser, name = "name")]
         name: String,
@@ -160,7 +160,7 @@ pub enum Command {
     Move {
         /// move a vault (or vl) | note (or nt) | folder (or fd)
         #[clap(value_enum, value_parser, name = "item type")]
-        item_type: Item,
+        item_type: ItemType,
         /// name of item to be moved
         #[clap(value_parser, name = "name")]
         name: String,
@@ -173,7 +173,7 @@ pub enum Command {
     Vmove {
         /// move a note (or nt) | folder (or fd).
         #[clap(value_enum, value_parser, name = "item type")]
-        item_type: VaultItem,
+        item_type: VaultItemType,
         /// name of item to be moved
         #[clap(value_parser, name = "name")]
         name: String,

@@ -1,6 +1,6 @@
 use clap::ValueEnum;
 
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Clone, Debug, PartialEq)]
 pub enum Item {
     Vault,
     Vl,

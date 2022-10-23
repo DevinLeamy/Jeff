@@ -141,15 +141,24 @@ impl App {
                 Ok(Message::FolderChanged)
             }
             Command::Remove { item_type, name } => {
-                todo!()
-                // match item_type {
-                //     Item::Vl | Item::Vault => self.vaults.remove_vault(name)?,
-                //     _ => self
-                //         .vaults
-                //         .ref_current()?
-                //         .remove_vault_item(item_type.to_vault_item(), name)?,
-                // };
-                // return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
+                match item_type {
+                    ItemType::Fd | ItemType::Folder => {
+                        let vault = self.vaults.ref_current()?;
+                        let folder = vault.get_folder_with_name(name)?;
+                        folder.delete()?;
+                    }
+                    ItemType::Nt | ItemType::Note => {
+                        let vault = self.vaults.ref_current()?;
+                        let note = vault.get_note_with_name(name)?;
+                        note.delete()?;
+                    }
+                    ItemType::Vl | ItemType::Vault => {
+                        self.vaults.remove_vault(name)?;
+                        return Ok(Message::Empty);
+                    }
+                };
+
+                return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
             }
             Command::Rename {
                 item_type,

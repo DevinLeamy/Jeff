@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::{create_dir_all, remove_dir_all, rename};
+use std::fs::{create_dir, remove_dir_all, rename};
 use std::path::PathBuf;
 
 use crate::prelude::*;
@@ -77,13 +77,12 @@ impl Item for Vault {
      */
     fn create(absolute_path: PathBuf) -> JotResult<Self> {
         if absolute_path.exists() {
-            return Err(anyhow!(
-                "{}",
-                VaultAlreadyExists("Vault already exists".to_string())
-            ));
+            return Err(anyhow!(VaultAlreadyExists(
+                "Vault already exists".to_string()
+            )));
         }
 
-        create_dir_all(&absolute_path)?;
+        create_dir(&absolute_path)?;
         let new_vault = Vault {
             absolute_path: absolute_path.clone(),
             name: absolute_path
@@ -94,7 +93,10 @@ impl Item for Vault {
                 .to_string(),
             folders: vec![],
             notes: vec![],
-            vault_store: VaultStore::create_from_path(absolute_path),
+            vault_store: VaultStore::load_path(join_paths(vec![
+                absolute_path.to_str().unwrap(),
+                ".jot/data",
+            ])),
         };
 
         /*
@@ -133,7 +135,7 @@ impl Item for Vault {
     }
 
     /**
-     * Check if a given absolute path is a valid `jot` [[Vault]]
+     * Check if a given absolute path is a valid `jot` [Vault]
      */
     fn is_valid_path(absolute_path: &PathBuf) -> bool {
         // TOOD: add check to ensure that this vault

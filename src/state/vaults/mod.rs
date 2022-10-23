@@ -104,15 +104,15 @@ impl Vaults {
     }
 
     pub fn create_vault(&mut self, name: &str, location: &Path) -> JotResult<()> {
+        println!("{}", name);
         if self.data.vault_exists(name) {
-            return Err(anyhow!("{}", Error::VaultAlreadyExists(name.to_owned())));
+            return Err(anyhow!(Error::VaultAlreadyExists(name.to_owned())));
         }
 
         let location = process_path(location);
-        let path = create_item(Item::Vl, name, &location)?;
         let absolute_path = Vault::generate_abs_path(&location.to_path_buf(), &name.to_string());
 
-        let mut vault = Vault::load(absolute_path);
+        Vault::create(absolute_path)?;
 
         self.data.add_vault(name.to_owned(), location);
 
@@ -120,21 +120,22 @@ impl Vaults {
     }
 
     pub fn remove_vault(&mut self, name: &str) -> JotResult<()> {
-        todo!()
-        // if let Some(vault_location) = self.data.get_vault_location(name) {
-        //     remove_item(Item::Vl, name, vault_location)?;
-        //     self.data.remove_vault(name);
+        let maybe_vault_location = self.data.get_vault_location(name);
+        if maybe_vault_location.is_none() {
+            return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
+        }
 
-        //     if let Some(current_vault_name) = self.data.get_current_vault() {
-        //         if name == current_vault_name {
-        //             self.data.set_current_vault(None);
-        //         }
-        //     }
+        let vault_location = maybe_vault_location.unwrap();
+        let vault_to_remove = Vault::load(vault_location.to_path_buf())?;
 
-        //     Ok(())
-        // } else {
-        //     Err(Error::VaultNotFound(name.to_owned()))
-        // }
+        self.data.remove_vault(name);
+        vault_to_remove.delete()?;
+
+        if self.data.get_current_vault() == Some(&vault_to_remove.get_name()) {
+            self.data.set_current_vault(None);
+        }
+
+        Ok(())
     }
 
     pub fn rename_vault(&mut self, name: &str, new_name: &str) -> JotResult<()> {
