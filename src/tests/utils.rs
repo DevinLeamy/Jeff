@@ -14,7 +14,7 @@ pub fn sleep() {
 }
 
 fn setup() {
-    let _res = create_dir_all(PathBuf::from(TEST_HOME));
+    // let _res = create_dir_all(PathBuf::from(TEST_HOME));
     sleep();
 }
 
@@ -30,7 +30,7 @@ where
 }
 
 fn teardown() -> () {
-    let _res = remove_dir_all(PathBuf::from(TEST_HOME));
+    // let _res = remove_dir_all(PathBuf::from(TEST_HOME));
     sleep();
 }
 

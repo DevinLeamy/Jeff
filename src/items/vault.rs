@@ -209,8 +209,6 @@ impl Vault {
 }
 
 impl Vault {
-    pub fn create_vault_item(item: VaultItemType, name: &String) {}
-    pub fn create_and_open_note() {}
     pub fn remove_alias_from_note() {}
     pub fn set_alias() {}
     pub fn rename_vault_item() {}
