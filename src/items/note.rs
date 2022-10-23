@@ -61,7 +61,7 @@ impl Item for Note {
      */
     fn load(note_location: PathBuf) -> JotResult<Self> {
         if !Note::is_valid_path(&note_location) {
-            return Err(anyhow!("Invalid note path"));
+            return Err(anyhow!("Invalid note path [{:?}]", note_location));
         }
 
         Ok(Note {
@@ -71,7 +71,7 @@ impl Item for Note {
 
     fn create(note_location: PathBuf) -> JotResult<Self> {
         if !Note::is_valid_path(&note_location) {
-            return Err(anyhow!("Invalid note path"));
+            return Err(anyhow!("Invalid note path [{:?}]", note_location));
         }
 
         let _result = File::options()
@@ -91,7 +91,7 @@ impl Item for Note {
             return false;
         }
 
-        absolute_path.is_file() && absolute_path.extension().unwrap() == "md"
+        !absolute_path.is_dir() && absolute_path.extension().unwrap() == "md"
     }
 }
 

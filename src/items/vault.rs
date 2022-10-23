@@ -4,11 +4,7 @@ use std::collections::HashMap;
 use std::fs::{create_dir_all, remove_dir_all, rename};
 use std::path::PathBuf;
 
-use crate::enums::VaultItem;
-use crate::items::{Collection, Error, Folder, Item, Note};
-use crate::output::error::{Error::*, JotResult};
-use crate::traits::FileIO;
-use crate::utils::{get_absolute_path, join_paths};
+use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Vault {
@@ -167,6 +163,41 @@ impl Vault {
         Ok(())
     }
 
+    pub fn change_folder(&mut self, path: &PathBuf) -> JotResult<()> {
+        let vault_path = self.get_location();
+        let maybe_folder_path = self.vault_store.get_folder_path();
+        let new_location = if let Some(folder_path) = maybe_folder_path {
+            process_path(&join_paths(vec![
+                vault_path,
+                &PathBuf::from(folder_path),
+                path,
+            ]))
+        } else {
+            process_path(&join_paths(vec![vault_path, path]))
+        };
+
+        println!("Path: {:?}", new_location);
+
+        if !new_location.exists() {
+            return Err(anyhow!(Error::PathNotFound));
+        }
+
+        if !new_location.starts_with(&vault_path) {
+            return Err(anyhow!(Error::OutOfBounds));
+        }
+
+        let mut destination_folder = new_location.strip_prefix(vault_path).unwrap();
+        if destination_folder.has_root() {
+            destination_folder = destination_folder.strip_prefix("/").unwrap();
+        }
+        let destination_folder = destination_folder.to_path_buf();
+
+        self.vault_store
+            .set_folder_path(Some(path_to_string(destination_folder)));
+
+        Ok(())
+    }
+
     /**
      * Retrieve the path to the vault's persisted data store.
      */
@@ -176,20 +207,12 @@ impl Vault {
 }
 
 impl Vault {
-    pub fn create_vault_item(item: VaultItem, name: &String) {}
-
+    pub fn create_vault_item(item: VaultItemType, name: &String) {}
     pub fn create_and_open_note() {}
-
     pub fn remove_alias_from_note() {}
-
     pub fn set_alias() {}
-
-    pub fn change_folder() {}
-
     pub fn rename_vault_item() {}
-
     pub fn remove_vault_item() {}
-
     pub fn move_vault_item() {}
 
     pub fn list(&self) {
@@ -207,7 +230,7 @@ impl Vault {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VaultStore {
-    /// path to the current active folder inside of the vault
+    /// relative path from this vault to the active folder
     current_folder: Option<String>,
     /// absolute path to the vault store (in `.jot`, relative to [[Vault]])
     /// Option<T> type because [[FileIO]] has [[Default]] trait bound
@@ -232,7 +255,10 @@ impl FileIO for VaultStore {
      * store.
      */
     fn path(&self) -> PathBuf {
-        self.location.clone().unwrap()
+        join_paths(vec![
+            self.location.clone().unwrap(),
+            PathBuf::from(".jot/data"),
+        ])
     }
 }
 
@@ -257,6 +283,15 @@ impl VaultStore {
     pub fn set_absolute_path(&mut self, vault_path: PathBuf) {
         self.location = Some(vault_path);
         self.store();
+    }
+
+    pub fn set_folder_path(&mut self, folder_path: Option<String>) {
+        self.current_folder = folder_path;
+        self.store();
+    }
+
+    pub fn get_folder_path(&self) -> Option<String> {
+        self.current_folder.clone()
     }
 }
 

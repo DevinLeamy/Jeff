@@ -259,3 +259,7 @@ fn generate_date_string() -> String {
 pub fn daily_note_name() -> String {
     generate_date_string()
 }
+
+pub fn path_to_string(path: PathBuf) -> String {
+    path.to_str().unwrap().to_string()
+}

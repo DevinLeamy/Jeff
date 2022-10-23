@@ -135,9 +135,10 @@ impl App {
                 return Ok(Message::ItemCreated(ItemType::Fd, name.to_owned()));
             }
             Command::Chdir { path } => {
-                todo!()
-                // self.vaults.mut_current()?.change_folder(path)?;
-                // return Ok(Message::FolderChanged);
+                let vault = self.vaults.mut_current()?;
+                vault.change_folder(path)?;
+
+                Ok(Message::FolderChanged)
             }
             Command::Remove { item_type, name } => {
                 todo!()

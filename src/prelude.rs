@@ -2,7 +2,7 @@ pub use crate::{
     editor::*,
     enums::{Item as ItemType, VaultItem as VaultItemType},
     items::*,
-    output::{Error::*, *},
+    output::{error::Error, Error::*, *},
     state::*,
     tests::*,
     traits::*,
