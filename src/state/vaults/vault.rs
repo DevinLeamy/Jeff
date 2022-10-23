@@ -1,18 +1,11 @@
-use crate::{
-    enums::VaultItem,
-    output::error::{Error, JotResult},
-    traits::FileIO,
-    state::config::EditorData,
-    utils::{
-        create_item, join_paths, move_item, process_path, list_notes, remove_item, rename_item,
-        run_editor,
-    },
-    items::{Note, Folder}
-};
-use anyhow::anyhow;
-use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+
+use anyhow::anyhow;
+use serde::{Deserialize, Serialize};
+
+use crate::prelude::*;
+use crate::output::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vault {
@@ -115,7 +108,7 @@ impl Vault {
         for entry in path.read_dir().unwrap() {
             let entry = entry.unwrap().path();
 
-            if Note::is_jot_note(&entry) {
+            if Note::is_valid_path(&entry) {
                 let note_name = entry.file_stem().unwrap().to_str().unwrap().to_string();
                 notes.push(note_name);
             }
@@ -134,7 +127,7 @@ impl Vault {
         for entry in path.read_dir().unwrap() {
             let entry = entry.unwrap().path();
 
-            if Folder::is_jot_folder(&entry) {
+            if Folder::is_valid_path(&entry) {
                 folders.push(entry.file_stem().unwrap().to_str().unwrap().to_string());
             }
         }
@@ -167,7 +160,7 @@ impl Vault {
 impl Vault {
     pub fn set_alias(&mut self, note_name: String, alias_name: String) -> JotResult<()> {
         if self.name_in_use(alias_name.clone()) {
-            return Err(anyhow!("{}", Error::InvalidName))
+            return Err(anyhow!("{}", Error::InvalidName));
         }
 
         self.aliases.insert(note_name, alias_name);
@@ -188,7 +181,7 @@ impl Vault {
         }
     }
 
-    pub fn create_vault_item(&self, item_type: VaultItem, name: &str) -> JotResult<()> {
+    pub fn create_vault_item(&self, item_type: VaultItemType, name: &str) -> JotResult<()> {
         let location = self.generate_location();
 
         create_item(item_type.to_item(), name, &location)?;
@@ -196,7 +189,7 @@ impl Vault {
         Ok(())
     }
 
-    pub fn remove_vault_item(&self, item_type: VaultItem, name: &str) -> JotResult<()> {
+    pub fn remove_vault_item(&self, item_type: VaultItemType, name: &str) -> JotResult<()> {
         let location = self.generate_location();
 
         remove_item(item_type.to_item(), name, &location)?;
@@ -206,7 +199,7 @@ impl Vault {
 
     pub fn rename_vault_item(
         &self,
-        item_type: VaultItem,
+        item_type: VaultItemType,
         name: &str,
         new_name: &str,
     ) -> JotResult<()> {
@@ -219,7 +212,7 @@ impl Vault {
 
     pub fn move_vault_item(
         &self,
-        item_type: VaultItem,
+        item_type: VaultItemType,
         name: &str,
         new_location: &PathBuf,
     ) -> JotResult<()> {
@@ -239,7 +232,7 @@ impl Vault {
 
     pub fn vmove_vault_item(
         &self,
-        item_type: &VaultItem,
+        item_type: &VaultItemType,
         name: &str,
         vault_name: &str,
         vault_location: &Path,
@@ -266,7 +259,7 @@ impl Vault {
      */
     pub fn create_and_open_note(&mut self, name: &str, editor_data: &EditorData) -> JotResult<()> {
         if !self.contains_note(&name.to_owned()) {
-            self.create_vault_item(VaultItem::Nt, name)?;
+            self.create_vault_item(VaultItemType::Nt, name)?;
         }
 
         self.open_note(name, editor_data)

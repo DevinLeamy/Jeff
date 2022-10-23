@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 use std::fs::{remove_file, File, rename};
+use anyhow::anyhow;
 
-use crate::utils::join_paths;
-use crate::items::{Item, Error, Folder};
-use crate::output::error::JotResult;
+use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Note {
@@ -20,7 +19,7 @@ impl Item for Note {
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
-        assert!(Note::is_jot_note(&new_location));
+        assert!(Note::is_valid_path(&new_location));
         rename(&self.location, &new_location)?;
         self.location = new_location;
 
@@ -56,19 +55,38 @@ impl Item for Note {
      * Initializes an existing note from its path
      */
     fn load(note_location: PathBuf) -> JotResult<Self> {
+        if !Note::is_valid_path(&note_location) {
+            return Err(anyhow!("Invalid note path"));
+        }
+
         Ok(Note { location: note_location })
     }
 
     fn create(note_location: PathBuf) -> JotResult<Self> {
+        if !Note::is_valid_path(&note_location) {
+            return Err(anyhow!("Invalid note path"));
+        }
+
         let _result = File::options().create_new(true).write(true).open(&note_location)?;
         let note = Note::load(note_location)?;
 
         Ok(note)
     }
+
+    /**
+     * Checks if a path points to a valid jot [Note].
+     */
+    fn is_valid_path(absolute_path: &PathBuf) -> bool {
+        if absolute_path.extension().is_none() {
+            return false;
+        }
+
+        absolute_path.is_file() && absolute_path.extension().unwrap() == "md"
+    }
 }
 
 impl Note {
-    /**
+    /*
      * Creates a note inside of the given folder.
      */
     // pub fn create_from_folder(name: String, folder: &Folder) -> Result<Self, Error> {
@@ -77,17 +95,6 @@ impl Note {
     //
     //     Ok(Note { location })
     // }
-
-       /**
-     * Checks if a path points to a valid jot note.
-     */
-    pub fn is_jot_note(location: &PathBuf) -> bool {
-        if location.extension().is_none() {
-            return false;
-        }
-
-        location.is_file() && location.extension().unwrap() == "md"
-    }
 }
 
 

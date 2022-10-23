@@ -44,7 +44,7 @@ impl Item for Vault {
     }
 
     fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {
-        assert!(Vault::is_jot_vault(&new_absolute_path));
+        assert!(Vault::is_valid_path(&new_absolute_path));
         rename(&self.absolute_path, &new_absolute_path)?;
         self.absolute_path = new_absolute_path.clone();
         self.vault_store.set_absolute_path(new_absolute_path);
@@ -57,7 +57,7 @@ impl Item for Vault {
         let vault_parent_dir = self.absolute_path.parent().unwrap();
         let new_absolute_path = get_absolute_path(&vault_parent_dir.to_path_buf(), &new_name);
         
-        assert!(Vault::is_jot_vault(&new_absolute_path));
+        assert!(Vault::is_valid_path(&new_absolute_path));
         rename(&self.absolute_path, &new_absolute_path)?;
         self.absolute_path = new_absolute_path.clone();
         self.vault_store.set_absolute_path(new_absolute_path);
@@ -128,6 +128,15 @@ impl Item for Vault {
 
         Ok(new_vault)
     }
+
+    /**
+     * Check if a given absolute path is a valid `jot` [[Vault]]
+     */
+    fn is_valid_path(absolute_path: &PathBuf) -> bool {
+        // TOOD: add check to ensure that this vault 
+        // is not inside of another vault
+        absolute_path.is_dir() && absolute_path.file_name().unwrap() != ".jot"
+    }
 } 
 
 impl Vault {
@@ -140,10 +149,10 @@ impl Vault {
         for item in self.absolute_path.read_dir().unwrap() {
             let item_location = item.unwrap().path();
 
-            if Folder::is_jot_folder(&item_location) {
+            if Folder::is_valid_path(&item_location) {
                 let folder = Folder::load(item_location)?;
                 self.folders.push(folder);
-            } else if Note::is_jot_note(&item_location) {
+            } else if Note::is_valid_path(&item_location) {
                 let note = Note::load(item_location)?;
                 self.notes.push(note);
             }
@@ -153,14 +162,7 @@ impl Vault {
         Ok(())
     }
 
-    /**
-     * Check if a given absolute path is a valid `jot` [[Vault]]
-     */
-    pub fn is_jot_vault(absolute_path: &PathBuf) -> bool {
-        // TOOD: add check to ensure that this vault 
-        // is not inside of another vault
-        absolute_path.is_dir() && absolute_path.file_name().unwrap() != ".jot"
-    }
+    
 
     /**
      * Retrieve the path to the vault's persisted data store.

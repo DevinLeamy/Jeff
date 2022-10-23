@@ -1,13 +1,8 @@
-use std::any::TypeId;
 use std::path::PathBuf;
-use std::fs::{remove_dir_all, File, rename};
+use std::fs::{remove_dir_all, rename, create_dir_all};
+use anyhow::anyhow;
 
-use crate::items::{Collection, Note, Error, Item};
-use crate::utils::{join_paths, get_absolute_path};
-use crate::output::error::JotResult;
-
-// use crate::utils::join_paths;
-
+use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -36,7 +31,7 @@ impl Item for Folder {
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
-        assert!(Folder::is_jot_folder(&new_location));
+        assert!(Folder::is_valid_path(&new_location));
         rename(&self.location, &new_location)?;
         self.location = new_location;
 
@@ -47,7 +42,7 @@ impl Item for Folder {
         let file_parent = self.location.parent().unwrap();
         let new_location = get_absolute_path(&file_parent.to_path_buf(), &new_name);
 
-        assert!(Folder::is_jot_folder(&new_location));
+        assert!(Folder::is_valid_path(&new_location));
         rename(&self.location, &new_location)?;
         self.location = new_location;
 
@@ -74,21 +69,35 @@ impl Item for Folder {
     /**
      * Creates a new folder at the given location.
      */
-    fn create(location: PathBuf) -> JotResult<Self> {
-        Ok(Folder {
-            location,
+    fn create(absolute_path: PathBuf) -> JotResult<Self> {
+        println!("{:?}", absolute_path);
+        if !Folder::is_valid_path(&absolute_path) {
+            return Err(anyhow!("Invalid folder path"));
+        }
+
+        let folder = Folder {
+            location: absolute_path.clone(),
             folders: vec![],
             notes: vec![],
-        })
+        };
+
+        // TODO: enforce that the folder is only one nesting level deeper
+        // than the current note.
+        create_dir_all(absolute_path)?;
+
+        Ok(folder)
     }
     /**
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    fn load(location: PathBuf) -> JotResult<Self> {
-        assert!(location.is_dir());
+    fn load(absolute_path: PathBuf) -> JotResult<Self> {
+        if !Folder::is_valid_path(&absolute_path) {
+            return Err(anyhow!("Invalid folder path"));
+        }
+
         let mut folder = Folder {
-            location,
+            location: absolute_path,
             folders: vec![],
             notes: vec![],
         };
@@ -96,6 +105,14 @@ impl Item for Folder {
         folder.load_contents()?;
 
         Ok(folder)
+    }
+
+    /**
+     * Check if a given location points to a valid 
+     * `jot` [Folder]
+     */
+    fn is_valid_path(location: &PathBuf) -> bool {
+        location.file_name().unwrap() != ".jot" && !location.is_file()
     }
 }
 
@@ -109,10 +126,10 @@ impl Folder {
         for item in self.location.read_dir().unwrap() {
             let item_location = item.unwrap().path();
 
-            if Folder::is_jot_folder(&item_location) {
+            if Folder::is_valid_path(&item_location) {
                 let folder = Folder::load(item_location)?;
                 self.folders.push(Box::new(folder));
-            } else if Note::is_jot_note(&item_location) {
+            } else if Note::is_valid_path(&item_location) {
                 let note = Note::load(item_location)?;
                 self.notes.push(note);
             }
@@ -121,13 +138,7 @@ impl Folder {
         Ok(())
     }
 
-    /**
-     * Check if a given location points to a valid 
-     * `jot` [Folder]
-     */
-    pub fn is_jot_folder(location: &PathBuf) -> bool {
-        location.is_dir() && location.file_name().unwrap() != ".jot"
-    }
+    
 
     pub fn list_with_buffer(&self, buffer: String) {
         println!("├── {}{}", buffer, self.get_name());

@@ -1,12 +1,11 @@
 use std::path::PathBuf;
 
-use crate::items::Error;
 use crate::output::error::JotResult;
 
 pub trait Item : Clone {
     /// Get the absolute path of an item
     fn get_location(&self) -> &PathBuf;
-    /// Get the name of an item. Names do not include file extensions
+    /// Get the name of an item. Names do not include file extensions.
     fn get_name(&self) -> String;
     /// Move the given item to a new location.
     /// 
@@ -17,6 +16,8 @@ pub trait Item : Clone {
     fn generate_abs_path(parent_dir: &PathBuf, item_name: &String) -> PathBuf;
     fn load(path: PathBuf) -> JotResult<Self>;
     fn create(path: PathBuf) -> JotResult<Self>;
+    /// Determine is the given path is valid for this type of item.
+    fn is_valid_path(absolute_path: &PathBuf) -> bool;
 }
 
 

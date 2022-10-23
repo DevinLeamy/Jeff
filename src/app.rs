@@ -54,21 +54,31 @@ impl App {
                 return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
             }
             Command::Today { create_if_dne } => {
-                todo!()
-                // let daily_note_name = daily_note_name(); 
-                // let vault = self.vaults.mut_current()?;
+                let daily_note_name = daily_note_name(); 
+                let vault = self.vaults.ref_current()?;
+                let maybe_note = vault.get_note_with_name(&format!("{}.md", daily_note_name).to_string());
 
-                // /*
-                //  * Edit the daily note. If -c is supplied, create the 
-                //  * daily note if it doesn't exist. 
-                //  */
-                // if *create_if_dne {
-                //     vault.create_and_open_note(&daily_note_name, self.config.get_editor_data())?;
-                // } else {
-                //     vault.open_note(&daily_note_name, self.config.get_editor_data())?;
-                // }
+                if maybe_note.is_err() && !*create_if_dne {
+                    return Err(anyhow!("Daily note does not exist, consider supplying the --create flag"));
+                }
 
-                // return Ok(Message::Empty);
+                /*
+                 * Edit the daily note. If --create is supplied, create and edit the 
+                 * daily note. 
+                 */
+                let message;
+                let note = if *create_if_dne {
+                    let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
+                    message = Message::ItemCreated(ItemType::Nt, daily_note_name);
+                    Note::create(note_path)?
+                } else {
+                    message = Message::Empty;
+                    maybe_note.unwrap()
+                };
+
+                self.editor.open_note(note)?;
+
+                Ok(message)
             }
             Command::Alias { name, maybe_alias, remove_alias } => {
                 todo!()
@@ -94,11 +104,18 @@ impl App {
                 return Ok(Message::Empty);
             }
             Command::Folder { name } => {
-                todo!()
-                // self.vaults
-                //     .ref_current()?
-                //     .create_vault_item(VaultItem::Fd, name)?;
-                // return Ok(Message::ItemCreated(Item::Fd, name.to_owned()));
+                let vault = self.vaults.ref_current()?;
+
+                let maybe_folder = vault.get_folder_with_name(name);
+                if let Ok(folder) = maybe_folder {
+                    return Err(anyhow!("Folder with name [{}] already exists", folder.get_name()));
+                }
+
+                let folder_path = Folder::generate_abs_path(vault.get_location(), name);
+
+                Folder::create(folder_path)?;
+
+                return Ok(Message::ItemCreated(ItemType::Fd, name.to_owned()));
             }
             Command::Chdir { path } => {
                 todo!()
@@ -116,11 +133,7 @@ impl App {
                 // };
                 // return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
             }
-            Command::Rename {
-                item_type,
-                name,
-                new_name,
-            } => {
+            Command::Rename { item_type, name, new_name, } => {
                 todo!()
                 // match item_type {
                 //     Item::Vl | Item::Vault => self.vaults.rename_vault(name, new_name)?,
@@ -136,11 +149,7 @@ impl App {
                 //     new_name.to_owned(),
                 // ));
             }
-            Command::Move {
-                item_type,
-                name,
-                new_location,
-            } => {
+            Command::Move { item_type, name, new_location, } => {
                 todo!()
                 // match item_type {
                 //     Item::Vl | Item::Vault => self.vaults.move_vault(name, new_location)?,
@@ -152,11 +161,7 @@ impl App {
                 // };
                 // return Ok(Message::ItemMoved(item_type.to_owned(), name.to_owned()));
             }
-            Command::Vmove {
-                item_type,
-                name,
-                vault_name,
-            } => {
+            Command::Vmove { item_type, name, vault_name, } => {
                 self.vaults.move_to_vault(item_type, name, vault_name)?;
                 return Ok(Message::ItemVMoved(
                     item_type.to_owned(),

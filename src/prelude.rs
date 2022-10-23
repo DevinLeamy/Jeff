@@ -1,5 +1,5 @@
 pub use crate::{
-    output::*,
+    output::{*, Error::*},
     items::*,
     state::*,
     utils::*,
