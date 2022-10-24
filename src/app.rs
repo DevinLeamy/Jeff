@@ -2,10 +2,8 @@ use std::path::PathBuf;
 
 use crate::prelude::*;
 use anyhow::anyhow;
-use clap::Parser;
 
 pub struct App {
-    args: Args,
     config: Config,
     vaults: Vaults,
     editor: Editor,
@@ -16,15 +14,14 @@ impl App {
         let config = Config::load();
         let editor_data = config.get_editor_data();
         Ok(App {
-            args: Args::parse(),
-            config: config,
+            config,
             vaults: Vaults::load()?,
             editor: Editor::from_config(editor_data),
         })
     }
 
-    pub fn handle_args(&mut self) -> JotResult<Message> {
-        match &self.args.command {
+    pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
+        match &command {
             Command::Vault {
                 show_loc,
                 name,
@@ -233,13 +230,38 @@ impl App {
                 name,
                 vault_name,
             } => {
-                todo!()
-                // self.vaults.move_to_vault(item_type, name, vault_name)?;
-                // return Ok(Message::ItemVMoved(
-                //     item_type.to_owned(),
-                //     name.to_owned(),
-                //     vault_name.to_owned(),
-                // ));
+                let vault = self.vaults.ref_current()?;
+                let new_vault = self.vaults.get_vault(vault_name)?;
+
+                match item_type {
+                    VaultItemType::Fd | VaultItemType::Folder => {
+                        // new location is relative to the root of the vault
+                        let mut folder = vault.get_folder_with_name(name)?;
+                        let new_absolute_path = process_path(&join_paths(vec![
+                            new_vault.get_location(),
+                            &PathBuf::from(folder.get_name()),
+                        ]));
+
+                        folder.relocate(new_absolute_path.to_owned())?;
+                    }
+                    VaultItemType::Nt | VaultItemType::Note => {
+                        // new location is relative to the root of the vault
+                        let vault = self.vaults.ref_current()?;
+                        let mut note = vault.get_note_with_name(name)?;
+                        let new_absolute_path = process_path(&join_paths(vec![
+                            new_vault.get_location(),
+                            &PathBuf::from(note.get_name()),
+                        ]));
+
+                        note.relocate(new_absolute_path.to_owned())?;
+                    }
+                }
+
+                return Ok(Message::ItemVMoved(
+                    item_type.to_owned(),
+                    name.to_owned(),
+                    vault_name.to_owned(),
+                ));
             }
             Command::List => {
                 self.vaults.ref_current()?.list();
@@ -266,5 +288,14 @@ fn open_note_test() {
 
 #[test]
 fn create_note_test() {
-    run_test(|| {})
+    // run_test(|| {
+    //     let mut app = App::new().unwrap();
+    //     let new_vault_path = test_path("new_vault");
+
+    //     app.handle_command(Command::Vault {
+    //         show_loc: false,
+    //         name: Some("new_vault".to_string()),
+    //         location: Some(PathBuf::from(test_path(""))),
+    //     });
+    // })
 }

@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use core::time;
 use std::{
     fs::{create_dir_all, remove_dir_all},

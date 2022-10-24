@@ -112,6 +112,7 @@ impl Item for Vault {
      * into notes and folders.
      */
     fn load(absolute_path: PathBuf) -> JotResult<Self> {
+        println!("{:?}", absolute_path);
         assert!(absolute_path.is_dir());
         let mut new_vault = Vault {
             absolute_path: absolute_path.clone(),

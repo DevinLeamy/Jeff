@@ -27,6 +27,12 @@ impl Vaults {
         get_absolute_path(vault_parent_dir, name)
     }
 
+    pub fn get_vault(&self, name: &String) -> JotResult<Vault> {
+        let vault_abs_path = self.get_vault_path(name);
+        let vault = Vault::load(vault_abs_path)?;
+        Ok(vault)
+    }
+
     fn load_current_vault(&mut self) -> JotResult<()> {
         self.current = if let Some(current_vault_name) = self.data.get_current_vault() {
             let vault_absolute_path = self.get_vault_path(current_vault_name);
@@ -170,23 +176,6 @@ impl Vaults {
             .set_vault_location(name, new_location.to_path_buf());
 
         Ok(())
-    }
-
-    pub fn move_to_vault(
-        &self,
-        item_type: &VaultItemType,
-        name: &str,
-        vault_name: &str,
-    ) -> JotResult<()> {
-        todo!()
-        // if let Some(vault_location) = self.data.get_vault_location(vault_name) {
-        //     self.ref_current()?
-        //         .vmove_vault_item(item_type, name, vault_name, vault_location)?;
-
-        //     Ok(())
-        // } else {
-        //     Err(Error::VaultNotFound(name.to_owned()))
-        // }
     }
 
     pub fn enter_vault(&mut self, name: &str) -> JotResult<()> {

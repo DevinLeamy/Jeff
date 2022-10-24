@@ -13,10 +13,13 @@ use crate::{
     app::App,
     output::{Message, Output},
 };
+use clap::Parser;
+
 fn main() {
     let mut app = App::new().unwrap();
+    let command = crate::state::Args::parse().command;
 
-    match app.handle_args() {
+    match app.handle_command(command) {
         Ok(msg) => match msg {
             Message::Empty => (),
             _ => println!("{}", Output::Message(msg)),
