@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use chrono;
+use colored::*;
 use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
@@ -50,4 +51,8 @@ pub fn daily_note_name() -> String {
 
 pub fn path_to_string(path: PathBuf) -> String {
     path.to_str().unwrap().to_string()
+}
+
+pub fn color_text(text: &String, color: Color) -> String {
+    text.color(color).to_string()
 }

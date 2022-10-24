@@ -288,14 +288,5 @@ fn open_note_test() {
 
 #[test]
 fn create_note_test() {
-    // run_test(|| {
-    //     let mut app = App::new().unwrap();
-    //     let new_vault_path = test_path("new_vault");
-
-    //     app.handle_command(Command::Vault {
-    //         show_loc: false,
-    //         name: Some("new_vault".to_string()),
-    //         location: Some(PathBuf::from(test_path(""))),
-    //     });
-    // })
+    run_test(|| {})
 }

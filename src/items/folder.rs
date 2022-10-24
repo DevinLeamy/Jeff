@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use colored::*;
 use std::fs::{create_dir_all, remove_dir_all, rename};
 use std::path::PathBuf;
 
@@ -144,7 +145,7 @@ impl Folder {
     }
 
     pub fn list_with_buffer(&self, buffer: String) {
-        println!("{}└── {}", buffer, self.get_name());
+        println!("{}└── {}", buffer, self.to_display_string());
 
         for folder in self.get_folders_sorted() {
             folder.list_with_buffer(format!("{}    ", buffer).to_string());
@@ -152,9 +153,9 @@ impl Folder {
 
         for (i, note) in self.get_notes_sorted().iter().enumerate() {
             if i == self.notes.len() - 1 {
-                println!("{}    └── {}", buffer, note.get_name());
+                println!("{}    └── {}", buffer, note.to_display_string());
             } else {
-                println!("{}    ├── {}", buffer, note.get_name());
+                println!("{}    ├── {}", buffer, note.to_display_string());
             }
         }
     }

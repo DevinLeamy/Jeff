@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use colored::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::{create_dir, remove_dir_all, rename};
@@ -210,14 +211,14 @@ impl Vault {
 }
 
 impl Vault {
-    pub fn remove_alias_from_note() {}
-    pub fn set_alias() {}
-    pub fn rename_vault_item() {}
-    pub fn remove_vault_item() {}
-    pub fn move_vault_item() {}
+    // pub fn remove_alias_from_note() {}
+    // pub fn set_alias() {}
 
+    /**
+     * TODO: Move into [JotDisplay] trait
+     */
     pub fn list(&self) {
-        println!("{}", self.get_name());
+        println!("{}", self.to_display_string());
 
         for folder in self.get_folders_sorted() {
             folder.list_with_buffer("".to_string());
@@ -225,9 +226,9 @@ impl Vault {
 
         for (i, note) in self.get_notes_sorted().iter().enumerate() {
             if i == self.notes.len() - 1 {
-                println!("└── {}", note.get_name());
+                println!("└── {}", note.to_display_string());
             } else {
-                println!("├── {}", note.get_name());
+                println!("├── {}", note.to_display_string());
             }
         }
     }
@@ -268,20 +269,6 @@ impl FileIO for VaultStore {
 }
 
 impl VaultStore {
-    /**
-     * Creates a [[VaultStore]] from the absolute path
-     * of the folder it will stored inside.
-     */
-    pub fn create_from_path(parent_directory: PathBuf) -> Self {
-        let location = join_paths(vec![parent_directory.to_str().unwrap(), ".jot/data"]);
-
-        let mut vault_store: VaultStore = FileIO::load_path(location.clone());
-        vault_store.location = Some(location);
-        vault_store.store();
-
-        vault_store
-    }
-
     /**
      * Updates the absolute path to the vault.
      */

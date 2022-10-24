@@ -1,6 +1,3 @@
-pub mod data;
-pub mod vault;
-
 use crate::prelude::*;
 use anyhow::anyhow;
 use data::Data;
@@ -180,12 +177,12 @@ impl Vaults {
 
     pub fn enter_vault(&mut self, name: &str) -> JotResult<()> {
         if !self.data.vault_exists(name) {
-            return Err(anyhow!("{}", Error::VaultNotFound(name.to_owned())));
+            return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
         }
 
         if let Some(current_vault_name) = self.data.get_current_vault() {
             if name == current_vault_name {
-                return Err(anyhow!("{}", Error::AlreadyInVault(name.to_owned())));
+                return Err(anyhow!(Error::AlreadyInVault(name.to_owned())));
             }
         }
 

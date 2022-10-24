@@ -1,9 +1,11 @@
 pub mod error;
+pub mod jot_display;
 pub mod message;
 
 use std::fmt::Display;
 
 pub use error::{Error, JotResult};
+pub use jot_display::*;
 pub use message::Message;
 
 pub enum Output {
