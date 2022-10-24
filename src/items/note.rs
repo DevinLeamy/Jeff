@@ -6,37 +6,32 @@ use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Note {
-    location: PathBuf,
+    location: JotPath,
 }
 
 impl Item for Note {
-    fn get_location(&self) -> &PathBuf {
+    fn get_location(&self) -> &JotPath {
         &self.location
     }
 
     fn get_name(&self) -> String {
-        self.location
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
+        self.location.file_name()
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
         assert!(Note::is_valid_path(&new_location));
-        rename(&self.location, &new_location)?;
-        self.location = new_location;
+        rename(&self.location.as_path(), &new_location)?;
+        self.location = new_location.into();
 
         Ok(())
     }
 
     fn rename(&mut self, new_name: String) -> JotResult<()> {
-        let file_parent = self.location.parent().unwrap();
+        let file_parent = self.location.parent();
         let new_location = join_paths(vec![file_parent.to_str().unwrap(), &new_name]);
 
-        rename(&self.location, &new_location)?;
-        self.location = new_location;
+        rename(&self.location.as_path(), &new_location)?;
+        self.location = new_location.into();
 
         Ok(())
     }
@@ -44,7 +39,7 @@ impl Item for Note {
     fn delete(&self) -> JotResult<()> {
         // TODO: make sure the user is prompted before executing
         // NOTE: this could potentially delete a lot of information!
-        remove_file(&self.location)?;
+        remove_file(&self.location.as_path())?;
 
         Ok(())
     }
@@ -65,7 +60,7 @@ impl Item for Note {
         }
 
         Ok(Note {
-            location: note_location,
+            location: note_location.into(),
         })
     }
 

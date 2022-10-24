@@ -2,6 +2,7 @@ mod app;
 mod editor;
 mod enums;
 mod items;
+mod jot_path;
 mod output;
 mod prelude;
 mod state;

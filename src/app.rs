@@ -199,7 +199,7 @@ impl App {
                         let vault = self.vaults.ref_current()?;
                         let mut folder = vault.get_folder_with_name(name)?;
                         let new_absolute_path = process_path(&join_paths(vec![
-                            vault.get_location(),
+                            vault.get_location().as_path(),
                             new_location,
                             &PathBuf::from(folder.get_name()),
                         ]));
@@ -211,7 +211,7 @@ impl App {
                         let vault = self.vaults.ref_current()?;
                         let mut note = vault.get_note_with_name(name)?;
                         let new_absolute_path = process_path(&join_paths(vec![
-                            vault.get_location(),
+                            vault.get_location().as_path(),
                             new_location,
                             &PathBuf::from(note.get_name()),
                         ]));
@@ -238,7 +238,7 @@ impl App {
                         // new location is relative to the root of the vault
                         let mut folder = vault.get_folder_with_name(name)?;
                         let new_absolute_path = process_path(&join_paths(vec![
-                            new_vault.get_location(),
+                            new_vault.get_location().as_path(),
                             &PathBuf::from(folder.get_name()),
                         ]));
 
@@ -249,7 +249,7 @@ impl App {
                         let vault = self.vaults.ref_current()?;
                         let mut note = vault.get_note_with_name(name)?;
                         let new_absolute_path = process_path(&join_paths(vec![
-                            new_vault.get_location(),
+                            new_vault.get_location().as_path(),
                             &PathBuf::from(note.get_name()),
                         ]));
 

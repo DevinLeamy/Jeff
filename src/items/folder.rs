@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use colored::*;
 use std::fs::{create_dir_all, remove_dir_all, rename};
 use std::path::PathBuf;
 
@@ -9,7 +8,7 @@ use crate::prelude::*;
 pub struct Folder {
     folders: Vec<Box<Folder>>,
     notes: Vec<Note>,
-    location: PathBuf,
+    location: JotPath,
 }
 
 impl Collection for Folder {
@@ -26,35 +25,29 @@ impl Collection for Folder {
 }
 
 impl Item for Folder {
-    fn get_location(&self) -> &PathBuf {
+    fn get_location(&self) -> &JotPath {
         &self.location
     }
 
     fn get_name(&self) -> String {
-        self.location
-            .to_owned()
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
+        self.location.file_name()
     }
 
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
         assert!(Folder::is_valid_path(&new_location));
-        rename(&self.location, &new_location)?;
-        self.location = new_location;
+        rename(&self.location.as_path(), &new_location)?;
+        self.location = new_location.into();
 
         Ok(())
     }
 
     fn rename(&mut self, new_name: String) -> JotResult<()> {
-        let file_parent = self.location.parent().unwrap();
+        let file_parent = self.location.parent();
         let new_location = get_absolute_path(&file_parent.to_path_buf(), &new_name);
 
         assert!(Folder::is_valid_path(&new_location));
-        rename(&self.location, &new_location)?;
-        self.location = new_location;
+        rename(&self.location.as_path(), &new_location)?;
+        self.location = new_location.into();
 
         Ok(())
     }
@@ -65,7 +58,7 @@ impl Item for Folder {
     fn delete(&self) -> JotResult<()> {
         // TODO: make sure the user is prompted before executing
         // NOTE: this could potentially delete a lot of information!
-        remove_dir_all(&self.location)?;
+        remove_dir_all(&self.location.as_path())?;
 
         Ok(())
     }
@@ -83,7 +76,7 @@ impl Item for Folder {
         }
 
         let folder = Folder {
-            location: absolute_path.clone(),
+            location: absolute_path.to_owned().into(),
             folders: vec![],
             notes: vec![],
         };
@@ -104,7 +97,7 @@ impl Item for Folder {
         }
 
         let mut folder = Folder {
-            location: absolute_path,
+            location: absolute_path.into(),
             folders: vec![],
             notes: vec![],
         };

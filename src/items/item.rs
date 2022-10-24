@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 
+use crate::jot_path::JotPath;
 use crate::output::error::JotResult;
 
 pub trait Item: Clone {
     /// Get the absolute path of an item
-    fn get_location(&self) -> &PathBuf;
+    fn get_location(&self) -> &JotPath;
     /// Get the name of an item. Names do not include file extensions.
     fn get_name(&self) -> String;
     /// Move the given item to a new location.
