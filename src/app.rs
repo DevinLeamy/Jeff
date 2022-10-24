@@ -12,15 +12,15 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new() -> JotResult<Self> {
         let config = Config::load();
         let editor_data = config.get_editor_data();
-        App {
+        Ok(App {
             args: Args::parse(),
             config: config,
-            vaults: Vaults::load(),
+            vaults: Vaults::load()?,
             editor: Editor::from_config(editor_data),
-        }
+        })
     }
 
     pub fn handle_args(&mut self) -> JotResult<Message> {

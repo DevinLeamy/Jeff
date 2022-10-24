@@ -1,16 +1,7 @@
 pub mod data;
 pub mod vault;
 
-use crate::{
-    enums::{Item, VaultItem},
-    items::{Error as IOError, Item as ItemTrait, Vault},
-    output::error::{Error, JotResult},
-    traits::FileIO,
-    utils::{
-        create_item, get_absolute_path, join_paths, move_item, process_path, remove_item,
-        rename_item,
-    },
-};
+use crate::prelude::*;
 use anyhow::anyhow;
 use data::Data;
 use std::path::{Path, PathBuf};
@@ -22,13 +13,13 @@ pub struct Vaults {
 }
 
 impl Vaults {
-    pub fn load() -> Self {
+    pub fn load() -> JotResult<Self> {
         let mut vaults = Vaults {
             current: None,
             data: Data::load(),
         };
-        vaults.load_current_vault();
-        vaults
+        vaults.load_current_vault()?;
+        Ok(vaults)
     }
 
     pub fn get_vault_path(&self, name: &String) -> PathBuf {
@@ -183,7 +174,7 @@ impl Vaults {
 
     pub fn move_to_vault(
         &self,
-        item_type: &VaultItem,
+        item_type: &VaultItemType,
         name: &str,
         vault_name: &str,
     ) -> JotResult<()> {

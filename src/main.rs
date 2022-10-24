@@ -14,7 +14,7 @@ use crate::{
     output::{Message, Output},
 };
 fn main() {
-    let mut app = App::new();
+    let mut app = App::new().unwrap();
 
     match app.handle_args() {
         Ok(msg) => match msg {
