@@ -144,14 +144,18 @@ impl Folder {
     }
 
     pub fn list_with_buffer(&self, buffer: String) {
-        println!("├── {}{}", buffer, self.get_name());
+        println!("{}└── {}", buffer, self.get_name());
 
         for folder in self.get_folders_sorted() {
-            folder.list_with_buffer(format!("{}  ", buffer).to_string());
+            folder.list_with_buffer(format!("{}    ", buffer).to_string());
         }
 
-        for note in self.get_notes_sorted() {
-            println!("├── {}{}", buffer, note.get_name());
+        for (i, note) in self.get_notes_sorted().iter().enumerate() {
+            if i == self.notes.len() - 1 {
+                println!("{}    └── {}", buffer, note.get_name());
+            } else {
+                println!("{}    ├── {}", buffer, note.get_name());
+            }
         }
     }
 }

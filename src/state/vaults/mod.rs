@@ -160,21 +160,25 @@ impl Vaults {
     }
 
     pub fn move_vault(&mut self, name: &str, new_location: &Path) -> JotResult<()> {
-        todo!()
-        // if !self.data.vault_exists(name) {
-        //     return Err(Error::VaultNotFound(name.to_owned()))
-        // }
+        if !self.data.vault_exists(name) {
+            return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
+        }
 
-        // let original_location = self.data.get_vault_location(name).unwrap();
-        // let new_path = move_item(Item::Vl, name, original_location, new_location)?;
-        // let mut vault = Vault::load(name.to_owned(), original_location.to_owned())?;
-        // let new_location = process_path(new_location);
+        let vault_parent_dir = self.data.get_vault_location(name).unwrap();
+        let vault_absolute_path = Vault::generate_abs_path(&vault_parent_dir, &name.to_string());
+        let mut vault = Vault::load(vault_absolute_path)?;
 
-        // vault.relocate(new_location)?;
+        let new_absolute_path = process_path(&join_paths(vec![
+            new_location.to_str().unwrap().to_string(),
+            vault.get_name(),
+        ]));
 
-        // self.data.set_vault_location(name, new_location);
+        vault.relocate(new_absolute_path.to_owned())?;
 
-        // Ok(())
+        self.data
+            .set_vault_location(name, new_location.to_path_buf());
+
+        Ok(())
     }
 
     pub fn move_to_vault(

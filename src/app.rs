@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::prelude::*;
 use anyhow::anyhow;
 use clap::Parser;
@@ -182,14 +184,7 @@ impl App {
                         self.vaults.rename_vault(name, new_name)?;
                     }
                 }
-                // match item_type {
-                //     Item::Vl | Item::Vault => self.vaults.rename_vault(name, new_name)?,
-                //     _ => self.vaults.ref_current()?.rename_vault_item(
-                //         item_type.to_vault_item(),
-                //         name,
-                //         new_name,
-                //     )?,
-                // };
+
                 return Ok(Message::ItemRenamed(
                     item_type.to_owned(),
                     name.to_owned(),
@@ -201,16 +196,37 @@ impl App {
                 name,
                 new_location,
             } => {
-                todo!()
-                // match item_type {
-                //     Item::Vl | Item::Vault => self.vaults.move_vault(name, new_location)?,
-                //     _ => self.vaults.ref_current()?.move_vault_item(
-                //         item_type.to_vault_item(),
-                //         name,
-                //         new_location,
-                //     )?,
-                // };
-                // return Ok(Message::ItemMoved(item_type.to_owned(), name.to_owned()));
+                match item_type {
+                    ItemType::Fd | ItemType::Folder => {
+                        // new location is relative to the root of the vault
+                        let vault = self.vaults.ref_current()?;
+                        let mut folder = vault.get_folder_with_name(name)?;
+                        let new_absolute_path = process_path(&join_paths(vec![
+                            vault.get_location(),
+                            new_location,
+                            &PathBuf::from(folder.get_name()),
+                        ]));
+
+                        folder.relocate(new_absolute_path.to_owned())?;
+                    }
+                    ItemType::Nt | ItemType::Note => {
+                        // new location is relative to the root of the vault
+                        let vault = self.vaults.ref_current()?;
+                        let mut note = vault.get_note_with_name(name)?;
+                        let new_absolute_path = process_path(&join_paths(vec![
+                            vault.get_location(),
+                            new_location,
+                            &PathBuf::from(note.get_name()),
+                        ]));
+
+                        note.relocate(new_absolute_path.to_owned())?;
+                    }
+                    ItemType::Vl | ItemType::Vault => {
+                        self.vaults.move_vault(name, new_location)?;
+                    }
+                }
+
+                return Ok(Message::ItemMoved(item_type.to_owned(), name.to_owned()));
             }
             Command::Vmove {
                 item_type,

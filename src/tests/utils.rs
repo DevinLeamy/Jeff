@@ -45,3 +45,12 @@ fn test_framework() {
         assert!(sum == 4);
     });
 }
+
+/*
+ * TODO:
+ * - Add tests
+ * - Reimplement function
+ * - Improve file paths
+ * - Add colors
+ * - Improve messages
+ */

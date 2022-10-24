@@ -222,8 +222,12 @@ impl Vault {
             folder.list_with_buffer("".to_string());
         }
 
-        for note in self.get_notes_sorted() {
-            println!("├── {}", note.get_name());
+        for (i, note) in self.get_notes_sorted().iter().enumerate() {
+            if i == self.notes.len() - 1 {
+                println!("└── {}", note.get_name());
+            } else {
+                println!("├── {}", note.get_name());
+            }
         }
     }
 }
