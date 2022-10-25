@@ -333,7 +333,6 @@ mod test {
     #[test]
     fn create_note_test_2() {
         run_test(|| {
-            println!("_______________________-");
             let (mut app, vault_name) = create_app_and_vault();
             execute_commands(
                 &mut app,
@@ -346,7 +345,6 @@ mod test {
                     },
                 ],
             );
-            println!("_______________________-");
         })
     }
 }

@@ -31,7 +31,6 @@ impl Data {
     }
 
     pub fn get_vault_location(&self, name: &str) -> Option<&PathBuf> {
-        println!("{} {:?}", name, self.vaults.get(name));
         self.vaults.get(name)
     }
 

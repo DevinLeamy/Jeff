@@ -7,17 +7,15 @@ use core::time;
 use std::sync::Mutex;
 use std::{panic::UnwindSafe, path::PathBuf, thread};
 
-/*
- * Because file system delete operations are slow/unperdictable at times, we do
- * not delete vaults, notes, or notes during tests.
- *
- * Solutions to this problem are welcome.
- */
-
 static VAULT_COUNTER: Mutex<i32> = Mutex::new(0);
 pub const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
 
-fn setup() {}
+fn setup() {
+    std::fs::create_dir_all(TEST_HOME).unwrap();
+    std::fs::create_dir_all(format!("{}/vaults", TEST_HOME)).unwrap();
+    std::fs::create_dir_all(format!("{}/config", TEST_HOME)).unwrap();
+    *VAULT_COUNTER.lock().unwrap() = 0;
+}
 
 pub fn run_test<T>(test: T)
 where
@@ -30,7 +28,9 @@ where
     assert!(result.is_ok())
 }
 
-fn teardown() -> () {}
+fn teardown() {
+    std::fs::remove_dir_all(TEST_HOME).unwrap();
+}
 
 pub fn test_path(name: &str) -> PathBuf {
     PathBuf::from(format!("{}/vaults/{}", TEST_HOME, name))
@@ -69,7 +69,7 @@ pub fn create_app_and_vault() -> (App, String) {
 
 pub fn execute_commands(app: &mut App, commands: Vec<Command>) {
     for command in commands {
-        println!("{:?}", command);
+        println!("COMMAND: {:?}", command);
         app.handle_command(command).unwrap();
         *app = App::new().unwrap();
     }
@@ -88,8 +88,10 @@ mod test {
 
     #[test]
     fn create_app_and_vault_test() {
-        let (_app, _vault_name) = create_app_and_vault();
-        let (_app, _vault_name) = create_app_and_vault();
-        let (_app, _vault_name) = create_app_and_vault();
+        run_test(|| {
+            let (_app, _vault_name) = create_app_and_vault();
+            let (_app, _vault_name) = create_app_and_vault();
+            let (_app, _vault_name) = create_app_and_vault();
+        });
     }
 }

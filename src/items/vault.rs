@@ -79,7 +79,7 @@ impl Item for Vault {
             )));
         }
 
-        create_dir(&absolute_path.as_path())?;
+        std::fs::create_dir(&absolute_path.as_path())?;
         let new_vault = Vault {
             path: path.to_owned(),
             name: path.file_name(),
@@ -164,8 +164,6 @@ impl Vault {
         } else {
             process_path(&join_paths(vec![vault_path.as_path(), path]))
         };
-
-        println!("Path: {:?}", new_location);
 
         if !new_location.exists() {
             return Err(anyhow!(Error::PathNotFound));
