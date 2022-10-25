@@ -106,17 +106,14 @@ impl Item for Vault {
     fn load(absolute_path: PathBuf) -> JotResult<Self> {
         let path: JotPath = absolute_path.into();
 
-        println!("{:?}", path);
-
         let mut new_vault = Vault {
             path: path.to_owned(),
             name: path.file_name(),
             folders: vec![],
             notes: vec![],
-            vault_store: VaultStore::load_path(join_paths(vec![
-                path.to_string().as_str(),
-                ".jot/data",
-            ])),
+            vault_store: VaultStore::load_path(
+                JotPath::from_parent(&path, ".jot/data".to_string()).to_path_buf(),
+            ),
         };
 
         new_vault.load_contents()?;
@@ -281,26 +278,12 @@ mod tests {
     use crate::tests::*;
 
     #[test]
-    fn create_vault_test() {
-        run_test(|| {
-            let new_vault_path = test_path("new_vault");
-            Vault::create(new_vault_path.clone()).unwrap();
-
-            sleep();
-
-            assert!(new_vault_path.exists() && new_vault_path.is_dir());
-        });
-    }
-
-    #[test]
     fn cannot_create_duplicate_vaults() {
         run_test(|| {
             let vault_1 = test_path("vault_1");
             let vault_2 = test_path("vault_1");
 
             Vault::create(vault_1.clone()).unwrap();
-
-            sleep();
 
             assert!(vault_1.exists() && vault_1.is_dir());
             match Vault::create(vault_2) {

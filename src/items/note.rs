@@ -1,6 +1,8 @@
 use anyhow::anyhow;
-use std::fs::{remove_file, rename, File};
+use std::fs::File;
 use std::path::PathBuf;
+
+use std::fs::{remove_file, rename};
 
 use crate::prelude::*;
 
@@ -64,10 +66,7 @@ impl Item for Note {
             return Err(anyhow!("Invalid note path [{:?}]", note_location));
         }
 
-        let _result = File::options()
-            .create_new(true)
-            .write(true)
-            .open(&note_location)?;
+        create_file(note_location.clone())?;
         let note = Note::load(note_location)?;
 
         Ok(note)

@@ -5,12 +5,7 @@ use crate::App;
 use crate::{enums::Item as ItemType, state::Command};
 use core::time;
 use std::sync::Mutex;
-use std::{
-    fs::{create_dir_all, remove_dir_all},
-    panic::UnwindSafe,
-    path::PathBuf,
-    thread,
-};
+use std::{panic::UnwindSafe, path::PathBuf, thread};
 
 /*
  * Because file system delete operations are slow/unperdictable at times, we do
@@ -22,14 +17,7 @@ use std::{
 static VAULT_COUNTER: Mutex<i32> = Mutex::new(0);
 pub const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
 
-pub fn sleep() {
-    let ten_millis = time::Duration::from_millis(100);
-    thread::sleep(ten_millis);
-}
-
-fn setup() {
-    sleep();
-}
+fn setup() {}
 
 pub fn run_test<T>(test: T)
 where
@@ -42,15 +30,13 @@ where
     assert!(result.is_ok())
 }
 
-fn teardown() -> () {
-    sleep();
-}
+fn teardown() -> () {}
 
 pub fn test_path(name: &str) -> PathBuf {
-    format!("{}/vaults/{}", TEST_HOME, name).into()
+    PathBuf::from(format!("{}/vaults/{}", TEST_HOME, name))
 }
 pub fn test_config_path(name: &str) -> PathBuf {
-    format!("{}/config/{}", TEST_HOME, name).into()
+    PathBuf::from(format!("{}/config/{}", TEST_HOME, name))
 }
 
 pub fn next_vault() -> String {
@@ -70,7 +56,7 @@ pub fn create_app_and_vault() -> (App, String) {
             Command::Vault {
                 show_loc: false,
                 name: Some(vault_name.to_owned()),
-                location: Some(PathBuf::from(TEST_HOME)),
+                location: Some(PathBuf::from(format!("{}/vaults", TEST_HOME))),
             },
             Command::Enter {
                 name: vault_name.to_owned(),
@@ -83,6 +69,7 @@ pub fn create_app_and_vault() -> (App, String) {
 
 pub fn execute_commands(app: &mut App, commands: Vec<Command>) {
     for command in commands {
+        println!("{:?}", command);
         app.handle_command(command).unwrap();
         *app = App::new().unwrap();
     }

@@ -1,8 +1,8 @@
 use anyhow::anyhow;
-use std::fs::{create_dir_all, remove_dir_all, rename};
 use std::path::PathBuf;
 
 use crate::prelude::*;
+use std::fs::{create_dir_all, remove_dir_all, rename};
 
 #[derive(Debug, Clone)]
 pub struct Folder {

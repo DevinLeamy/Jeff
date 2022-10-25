@@ -45,7 +45,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn list_vaults(&self, show_loc: &bool) {
+    pub fn list_vaults(&self, show_loc: bool) {
         for vault_name in self.data.get_vaults().keys() {
             if self.is_current_vault(vault_name) {
                 print!("👉 \x1b[0;34m{}\x1b[0m", vault_name)
@@ -53,7 +53,7 @@ impl Vaults {
                 print!("   {}", vault_name)
             }
 
-            if *show_loc {
+            if show_loc {
                 println!(
                     " \t {}",
                     self.data.get_vault_location(vault_name).unwrap().display()

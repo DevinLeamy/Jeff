@@ -20,3 +20,7 @@ fs_extra = "1.2.0"
 chrono = "0.4.22"
 anyhow = "1.0"
 colored = "2"
+
+[features]
+default = ["stmt_expr_attributes"]
+stmt_expr_attributes = []
