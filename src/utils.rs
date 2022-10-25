@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use chrono;
 use colored::*;
+use directories::ProjectDirs;
 use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
@@ -55,4 +56,22 @@ pub fn path_to_string(path: PathBuf) -> String {
 
 pub fn color_text(text: &String, color: Color) -> String {
     text.color(color).to_string()
+}
+
+pub fn application_config_path() -> PathBuf {
+    if cfg!(not(test)) {
+        let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
+        project_dirs.config_dir().to_path_buf()
+    } else {
+        PathBuf::from(format!("{}/config", TEST_HOME))
+    }
+}
+
+pub fn application_data_path() -> PathBuf {
+    if cfg!(not(test)) {
+        let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
+        project_dirs.data_dir().to_path_buf()
+    } else {
+        PathBuf::from(format!("{}/config", TEST_HOME))
+    }
 }

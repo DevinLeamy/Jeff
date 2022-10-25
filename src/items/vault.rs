@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use colored::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::{create_dir, remove_dir_all, rename};
@@ -34,10 +33,6 @@ impl Collection for Vault {
 impl Item for Vault {
     fn get_location(&self) -> &JotPath {
         &self.path
-    }
-
-    fn get_name(&self) -> String {
-        self.name.clone()
     }
 
     fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {

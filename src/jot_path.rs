@@ -50,7 +50,7 @@ impl DerefMut for JotPath {
 }
 
 impl JotPath {
-    pub fn from_directory(parent_dir: &PathBuf, file_name: String) -> Self {
+    pub fn from_parent(parent_dir: &PathBuf, file_name: String) -> Self {
         let path = join_paths(vec![parent_dir, &PathBuf::from(file_name)]);
 
         path.into()

@@ -1,5 +1,4 @@
-use crate::traits::FileIO;
-use directories::ProjectDirs;
+use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
@@ -11,13 +10,9 @@ pub struct Data {
 
 impl FileIO for Data {
     fn path(&self) -> PathBuf {
-        if let Some(dirs) = ProjectDirs::from("com", "", "jot") {
-            let mut path = dirs.data_dir().to_path_buf();
-            path.push("vaults");
-            path
-        } else {
-            panic!("current path couldn't be generated")
-        }
+        let mut path = application_data_path();
+        path.push("vaults");
+        path
     }
 }
 

@@ -6,6 +6,7 @@ use std::{
     path::PathBuf,
 };
 
+// #[cfg(not(test))]
 pub trait FileIO: Debug + Default + Serialize + DeserializeOwned {
     fn path(&self) -> PathBuf;
 
@@ -65,3 +66,25 @@ pub trait FileIO: Debug + Default + Serialize + DeserializeOwned {
         file.write_all(data_string.as_bytes()).unwrap();
     }
 }
+
+// #[cfg(test)]
+// /// Mock FileIO
+// pub trait FileIO: Debug + Default {
+//     fn path(&self) -> PathBuf;
+
+//     fn load() -> Self {
+//         Self::default()
+//     }
+
+//     fn load_path(_path: PathBuf) -> Self {
+//         Self::default()
+//     }
+
+//     fn store(&self) {}
+
+//     fn create_file(_path: PathBuf) -> Self {
+//         Self::default()
+//     }
+
+//     fn write_file(_file: &mut File, _data: &Self) {}
+// }

@@ -20,6 +20,10 @@ impl App {
         })
     }
 
+    pub fn get_vaults(&self) -> &Vaults {
+        &self.vaults
+    }
+
     pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
         match &command {
             Command::Vault {
@@ -281,12 +285,43 @@ impl App {
     }
 }
 
-#[test]
-fn open_note_test() {
-    run_test(|| {});
-}
+#[cfg(test)]
+mod test {
+    use super::*;
 
-#[test]
-fn create_note_test() {
-    run_test(|| {})
+    #[test]
+    fn create_note_test() {
+        run_test(|| {
+            let (mut app, vault_name) = create_app_and_vault();
+            execute_commands(
+                &mut app,
+                vec![
+                    Command::Note {
+                        name: "test_note".to_string(),
+                    },
+                    Command::Open {
+                        name: "test_note".to_string(),
+                    },
+                ],
+            );
+        })
+    }
+
+    #[test]
+    fn change_vaults() {
+        run_test(|| {
+            let (mut app, vault_name) = create_app_and_vault();
+            execute_commands(
+                &mut app,
+                vec![
+                    Command::Note {
+                        name: "test_note".to_string(),
+                    },
+                    Command::Open {
+                        name: "test_note".to_string(),
+                    },
+                ],
+            );
+        })
+    }
 }

@@ -1,8 +1,6 @@
 use std::process::Command;
 
-use crate::items::{Item, Note};
-use crate::output::error::JotResult;
-use crate::state::config::EditorData;
+use crate::prelude::*;
 
 pub struct Editor {
     /// CLI name of the editor (ex: "nvim" or "vim")
@@ -19,6 +17,7 @@ impl Editor {
         }
     }
 
+    #[cfg(not(test))]
     pub fn open_note(&self, note: Note) -> JotResult<()> {
         let note_path = note.get_location();
         let mut open_editor_command = Command::new(self.name.to_owned())
@@ -28,6 +27,14 @@ impl Editor {
         if self.conflict {
             open_editor_command.wait()?;
         }
+
+        Ok(())
+    }
+
+    #[cfg(test)]
+    pub fn open_note(&self, note: Note) -> JotResult<()> {
+        let note_path = note.get_location();
+        assert!(Note::is_valid_path(&note_path.to_path_buf()) && note_path.is_file());
 
         Ok(())
     }

@@ -7,7 +7,9 @@ pub trait Item: Clone {
     /// Get the absolute path of an item
     fn get_location(&self) -> &JotPath;
     /// Get the name of an item. Names do not include file extensions.
-    fn get_name(&self) -> String;
+    fn get_name(&self) -> String {
+        self.get_location().file_name()
+    }
     /// Move the given item to a new location.
     ///
     /// `new_location` - absolute path to the new location

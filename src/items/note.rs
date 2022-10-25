@@ -14,10 +14,6 @@ impl Item for Note {
         &self.location
     }
 
-    fn get_name(&self) -> String {
-        self.location.file_name()
-    }
-
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
         assert!(Note::is_valid_path(&new_location));
         rename(&self.location.as_path(), &new_location)?;
@@ -27,10 +23,9 @@ impl Item for Note {
     }
 
     fn rename(&mut self, new_name: String) -> JotResult<()> {
-        let file_parent = self.location.parent();
-        let new_location = join_paths(vec![file_parent.to_str().unwrap(), &new_name]);
+        let new_location = JotPath::from_parent(&self.location.parent(), new_name);
 
-        rename(&self.location.as_path(), &new_location)?;
+        rename(&self.location.as_path(), &new_location.as_path())?;
         self.location = new_location.into();
 
         Ok(())
@@ -88,16 +83,4 @@ impl Item for Note {
 
         !absolute_path.is_dir() && absolute_path.extension().unwrap() == "md"
     }
-}
-
-impl Note {
-    /*
-     * Creates a note inside of the given folder.
-     */
-    // pub fn create_from_folder(name: String, folder: &Folder) -> Result<Self, Error> {
-    //     let location = join_paths(vec![folder.get_location().to_str().unwrap(), &name]);
-    //     File::create(&location)?;
-    //
-    //     Ok(Note { location })
-    // }
 }

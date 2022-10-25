@@ -1,13 +1,13 @@
 mod app;
 mod editor;
 mod enums;
+mod fileio;
 mod items;
 mod jot_path;
 mod output;
 mod prelude;
 mod state;
 mod tests;
-mod traits;
 mod utils;
 
 use crate::{
@@ -21,10 +21,8 @@ fn main() {
     let command = crate::state::Args::parse().command;
 
     match app.handle_command(command) {
-        Ok(msg) => match msg {
-            Message::Empty => (),
-            _ => println!("{}", Output::Message(msg)),
-        },
+        Ok(Message::Empty) => (),
+        Ok(message) => println!("{}", Output::Message(message)),
         Err(message) => println!("{}", message),
     }
 }

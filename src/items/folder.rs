@@ -29,10 +29,6 @@ impl Item for Folder {
         &self.location
     }
 
-    fn get_name(&self) -> String {
-        self.location.file_name()
-    }
-
     fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
         assert!(Folder::is_valid_path(&new_location));
         rename(&self.location.as_path(), &new_location)?;
