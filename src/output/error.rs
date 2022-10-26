@@ -63,12 +63,6 @@ impl Display for Error {
     }
 }
 
-impl From<fs_extra::error::Error> for Error {
-    fn from(error: fs_extra::error::Error) -> Self {
-        Error::MoveError(process_io_error(error.to_string()))
-    }
-}
-
 impl From<Error> for String {
     fn from(error: Error) -> Self {
         format!("{}", error).to_string()

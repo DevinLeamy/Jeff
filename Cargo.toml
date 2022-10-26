@@ -1,13 +1,13 @@
 [package]
 name = "jt"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
-authors = ["araekiel <kumarshashwatsri@gmail.com>"]
+authors = ["devinleamy <devinleamy@gmail.com>", "araekiel <kumarshashwatsri@gmail.com>"]
 license = "MIT"
 description = "⚡Rapid note management for the terminal."
 readme = "README.md"
-homepage = "https://github.com/araekiel/jot"
-repository = "https://github.com/araekiel/jot"
+homepage = "https://github.com/devinleamy/jot"
+repository = "https://github.com/DevinLeamy/jot"
 keywords = ["cli", "notes", "note-management", "obsidian"]
 categories = ["command-line-utilities"]
 
@@ -16,7 +16,6 @@ serde = { version = "1.0.142", features = ["derive"] }
 toml = "0.5.9"
 clap = { version = "3.2.15", features = ["derive"] }
 directories = "4.0.1"
-fs_extra = "1.2.0"
 chrono = "0.4.22"
 anyhow = "1.0"
 colored = "2"
