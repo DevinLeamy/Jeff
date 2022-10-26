@@ -1,4 +1,5 @@
 use crate::enums::{ConfigType, Item, VaultItem};
+use colored::Colorize;
 use std::fmt::Display;
 
 pub enum Message {
@@ -16,12 +17,18 @@ pub enum Message {
     Empty,
 }
 
+impl Message {
+    fn create_message(content: String) -> String {
+        format!("ϟ {} ϟ {}", "Jot".yellow(), content)
+    }
+}
+
 impl Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
-            match self {
+            Message::create_message(match self {
                 Message::VaultEntered(name) => format!("entered \x1b[0;34m{}\x1b[0m", name),
                 Message::ItemCreated(item_type, name) =>
                     format!("{} \x1b[0;34m{}\x1b[0m created", item_type.full(), name),
@@ -62,7 +69,7 @@ impl Display for Message {
                     )
                 }
                 Message::Empty => "".to_string(),
-            }
+            })
         )
     }
 }

@@ -44,7 +44,7 @@ impl App {
             ));
         }
 
-        let note_path = Note::generate_abs_path(vault.get_location(), name);
+        let note_path = Note::generate_abs_path(&vault.get_active_location(), name);
 
         Note::create(note_path)?;
 
@@ -54,7 +54,7 @@ impl App {
     pub fn today(&mut self, create_if_dne: bool) -> JotResult<Message> {
         let daily_note_name = daily_note_name();
         let vault = self.vaults.ref_current()?;
-        let maybe_note = vault.get_note_with_name(&format!("{}.md", daily_note_name).to_string());
+        let maybe_note = vault.get_note_with_name(&daily_note_name);
 
         if maybe_note.is_err() && !create_if_dne {
             return Err(anyhow!(
@@ -68,6 +68,10 @@ impl App {
          */
         let message;
         let note = if create_if_dne {
+            /*
+             * We use vault.get_location() rather than vault.get_active_location() here because daily notes
+             * are created per-vault, not per-folder. Currently, they are always top-level.
+             */
             let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
             message = Message::ItemCreated(ItemType::Nt, daily_note_name);
             Note::create(note_path)?
@@ -82,7 +86,10 @@ impl App {
     }
 
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
-        let note = self.vaults.ref_current()?.get_note_with_name(name)?;
+        let note = self
+            .vaults
+            .ref_current()?
+            .get_note_from_active_folder(name)?;
         self.editor.open_note(note)?;
 
         return Ok(Message::Empty);
@@ -99,7 +106,7 @@ impl App {
             ));
         }
 
-        let folder_path = Folder::generate_abs_path(vault.get_location(), name);
+        let folder_path = Folder::generate_abs_path(&vault.get_active_location(), name);
 
         Folder::create(folder_path)?;
 
@@ -122,7 +129,7 @@ impl App {
             }
             ItemType::Nt | ItemType::Note => {
                 let vault = self.vaults.ref_current()?;
-                let note = vault.get_note_with_name(name)?;
+                let note = vault.get_note_from_active_folder(name)?;
                 note.delete()?;
             }
             ItemType::Vl | ItemType::Vault => {
@@ -275,10 +282,6 @@ impl App {
         })
     }
 
-    pub fn get_vaults(&self) -> &Vaults {
-        &self.vaults
-    }
-
     pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
         #[rustfmt::skip]
         match &command {
@@ -379,6 +382,56 @@ mod test {
             Fail(Command::Chdir { path: PathBuf::from("folder_1") }),
             Pass(Command::Enter { name: "vault_2".to_string() }),
             Pass(Command::Chdir { path: PathBuf::from("folder_1") })
+        ];
+    }
+
+    #[test]
+    fn create_and_remove_folder_note_vault() {
+        run! [
+            Fail(Command::Remove { item_type: ItemType::Fd, name: "folder_1".to_string() }),
+            Pass(Command::Folder { name: "folder_1".to_string() }),
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Remove { item_type: ItemType::Fd, name: "folder_1".to_string() }),
+            Fail(Command::Chdir { path: PathBuf::from("folder_1") })
+        ];
+        run! [
+            Fail(Command::Remove { item_type: ItemType::Vault, name: "vault_2".to_string() }),
+            Pass(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }),
+            Pass(Command::Enter { name: "vault_2".to_string() }),
+            Pass(Command::Remove { item_type: ItemType::Vault, name: "vault_2".to_string() }),
+            Fail(Command::Enter { name: "vault_2".to_string() })
+        ];
+        run! [
+            Fail(Command::Remove { item_type: ItemType::Note, name: "note_1".to_string() }),
+            Pass(Command::Note { name: "note_1".to_string() }),
+            Pass(Command::Open { name: "note_1".to_string() }),
+            Pass(Command::Remove { item_type: ItemType::Note, name: "note_1".to_string() }),
+            Fail(Command::Open { name: "note_1".to_string() })
+        ];
+    }
+
+    #[test]
+    fn create_and_edit_daily_note() {
+        run! [
+            Fail(Command::Today { create_if_dne: false }), // does not exist
+            Pass(Command::Today { create_if_dne: true }),  // create
+            Fail(Command::Today { create_if_dne: true }),  // already exists
+            Pass(Command::Today { create_if_dne: false }), // open
+            Pass(Command::Today { create_if_dne: false })  // open again
+        ];
+    }
+
+    #[test]
+    fn create_note_inside_folder() {
+        run! [
+            Pass(Command::Folder { name: "folder_1".to_string() }),
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Note { name: "note_1".to_string() }),
+            Pass(Command::Open { name: "note_1".to_string() }),
+            Pass(Command::Chdir { path: PathBuf::from("..") }),
+            Fail(Command::Open { name: "note_1".to_string() }), // cannot open note in ./folder_1 from ./
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Remove { item_type: ItemType::Nt, name: "note_1".to_string() })
         ];
     }
 }

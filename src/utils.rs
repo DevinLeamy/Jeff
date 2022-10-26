@@ -65,7 +65,7 @@ pub fn application_config_path() -> PathBuf {
         let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
         project_dirs.config_dir().to_path_buf()
     } else {
-        PathBuf::from(format!("{}/config", TEST_HOME))
+        PathBuf::from(TEST_CONFIG)
     }
 }
 
@@ -74,7 +74,7 @@ pub fn application_data_path() -> PathBuf {
         let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
         project_dirs.data_dir().to_path_buf()
     } else {
-        PathBuf::from(format!("{}/config", TEST_HOME))
+        PathBuf::from(TEST_CONFIG)
     }
 }
 

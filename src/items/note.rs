@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use std::fs::File;
 use std::path::PathBuf;
 
 use std::fs::{remove_file, rename};

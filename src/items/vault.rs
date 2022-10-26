@@ -134,6 +134,34 @@ impl Item for Vault {
 }
 
 impl Vault {
+    pub fn get_note_from_active_folder(&self, name: &String) -> JotResult<Note> {
+        if let Some(active_folder_path) = self.get_active_folder_path() {
+            /*
+             * We use active_folder_path (the relative path to the active folder) as
+             * the name of the folder here in get_folder_with_name because the relative
+             * path is just the name of the folder.
+             *
+             * This can, and should, be improved.
+             */
+            let active_folder = self.get_folder_with_name(&active_folder_path)?;
+            Ok(active_folder.get_note_with_name(name)?)
+        } else {
+            Ok(self.get_note_with_name(name)?)
+        }
+    }
+
+    /// Returns the path absolute path to the folder inside of the vault that
+    /// is currently "active". If no folder has been "cd"ed into, than the
+    /// absolute path to the vault is returned.
+    pub fn get_active_location(&self) -> JotPath {
+        let active_folder = self.vault_store.get_folder_path();
+
+        if active_folder.is_none() {
+            return self.get_location().to_owned();
+        }
+
+        JotPath::from_parent(&self.get_location(), active_folder.unwrap())
+    }
     /**
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
@@ -192,6 +220,10 @@ impl Vault {
      */
     pub fn get_data_path(&self) -> PathBuf {
         join_paths(vec![self.path.to_string().as_str(), ".jot/data"])
+    }
+
+    fn get_active_folder_path(&self) -> Option<String> {
+        self.vault_store.get_folder_path()
     }
 }
 

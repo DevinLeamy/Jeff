@@ -101,7 +101,6 @@ impl Vaults {
     }
 
     pub fn create_vault(&mut self, name: &str, location: &Path) -> JotResult<()> {
-        println!("{}", name);
         if self.data.vault_exists(name) {
             return Err(anyhow!(Error::VaultAlreadyExists(name.to_owned())));
         }
@@ -117,13 +116,12 @@ impl Vaults {
     }
 
     pub fn remove_vault(&mut self, name: &str) -> JotResult<()> {
-        let maybe_vault_location = self.data.get_vault_location(name);
-        if maybe_vault_location.is_none() {
+        let maybe_vault = self.get_vault(&name.to_string());
+        if maybe_vault.is_err() {
             return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
         }
 
-        let vault_location = maybe_vault_location.unwrap();
-        let vault_to_remove = Vault::load(vault_location.to_path_buf())?;
+        let vault_to_remove = maybe_vault.unwrap();
 
         self.data.remove_vault(name);
         vault_to_remove.delete()?;

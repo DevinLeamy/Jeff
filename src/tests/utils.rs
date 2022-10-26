@@ -35,14 +35,11 @@ fn teardown() {
     std::fs::remove_dir_all(TEST_HOME).unwrap();
 }
 
-pub fn test_path(name: &str) -> PathBuf {
-    PathBuf::from(format!("{}/vaults/{}", TEST_HOME, name))
-}
 pub fn test_vaults() -> PathBuf {
-    PathBuf::from(format!("{}/vaults", TEST_HOME))
+    PathBuf::from(TEST_VAULTS)
 }
-pub fn test_config_path(name: &str) -> PathBuf {
-    PathBuf::from(format!("{}/config/{}", TEST_HOME, name))
+pub fn test_config(name: &str) -> PathBuf {
+    PathBuf::from(TEST_CONFIG)
 }
 
 pub fn next_vault() -> String {
@@ -67,7 +64,7 @@ pub fn execute_command(test: Test) {
             if let Err(_) = app.handle_command(command.clone()) {
                 panic!(
                     "\n{}\n",
-                    format!("Failed on command: [{:?}]", command).red()
+                    format!("Expected to pass on command: [{:?}]", command).red()
                 );
             }
         }
@@ -75,7 +72,7 @@ pub fn execute_command(test: Test) {
             if let Ok(_) = app.handle_command(command.clone()) {
                 panic!(
                     "\n{}\n",
-                    format!("Failed on command: [{:?}]", command).red()
+                    format!("Expected to fail on command: [{:?}]", command).red()
                 );
             }
         }
