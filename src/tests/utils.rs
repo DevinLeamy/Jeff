@@ -1,14 +1,17 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+use crate::prelude::JotResult;
 use crate::App;
-use crate::{enums::Item as ItemType, state::Command};
-use core::time;
+use crate::{enums::Item as ItemType, state::Command::*};
 use std::sync::Mutex;
-use std::{panic::UnwindSafe, path::PathBuf, thread};
+use std::{panic::UnwindSafe, path::PathBuf};
 
 static VAULT_COUNTER: Mutex<i32> = Mutex::new(0);
 pub const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
+pub const TEST_VAULTS: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests/vaults";
+pub const TEST_CONFIG: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests/config";
+pub const INITIAL_VAULT: &'static str = "vault_1";
 
 fn setup() {
     std::fs::create_dir_all(TEST_HOME).unwrap();
@@ -35,6 +38,9 @@ fn teardown() {
 pub fn test_path(name: &str) -> PathBuf {
     PathBuf::from(format!("{}/vaults/{}", TEST_HOME, name))
 }
+pub fn test_vaults() -> PathBuf {
+    PathBuf::from(format!("{}/vaults", TEST_HOME))
+}
 pub fn test_config_path(name: &str) -> PathBuf {
     PathBuf::from(format!("{}/config/{}", TEST_HOME, name))
 }
@@ -46,52 +52,38 @@ pub fn next_vault() -> String {
     format!("test_vault_{}", vault_number)
 }
 
-/// returns the new vault name
-pub fn create_app_and_vault() -> (App, String) {
+pub enum Test {
+    Pass(crate::state::Command),
+    Fail(crate::state::Command),
+}
+
+use colored::Colorize;
+pub use Test::*;
+
+pub fn execute_command(test: Test) {
     let mut app = App::new().unwrap();
-    let vault_name = next_vault();
-    execute_commands(
-        &mut app,
-        vec![
-            Command::Vault {
-                show_loc: false,
-                name: Some(vault_name.to_owned()),
-                location: Some(PathBuf::from(format!("{}/vaults", TEST_HOME))),
-            },
-            Command::Enter {
-                name: vault_name.to_owned(),
-            },
-        ],
-    );
-
-    (app, vault_name)
+    match test {
+        Pass(command) => {
+            if let Err(_) = app.handle_command(command.clone()) {
+                panic!(
+                    "\n{}\n",
+                    format!("Failed on command: [{:?}]", command).red()
+                );
+            }
+        }
+        Fail(command) => {
+            if let Ok(_) = app.handle_command(command.clone()) {
+                panic!(
+                    "\n{}\n",
+                    format!("Failed on command: [{:?}]", command).red()
+                );
+            }
+        }
+    };
 }
 
-pub fn execute_commands(app: &mut App, commands: Vec<Command>) {
-    for command in commands {
-        println!("COMMAND: {:?}", command);
-        app.handle_command(command).unwrap();
-        *app = App::new().unwrap();
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_framework() {
-        run_test(|| {
-            let sum = 2 + 2;
-            assert!(sum == 4);
-        });
-    }
-
-    #[test]
-    fn create_app_and_vault_test() {
-        run_test(|| {
-            let (_app, _vault_name) = create_app_and_vault();
-            let (_app, _vault_name) = create_app_and_vault();
-            let (_app, _vault_name) = create_app_and_vault();
-        });
+pub fn execute_commands(commands: Vec<Test>) {
+    for test in commands {
+        execute_command(test);
     }
 }

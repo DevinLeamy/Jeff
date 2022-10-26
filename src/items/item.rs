@@ -10,6 +10,10 @@ pub trait Item: Clone {
     fn get_name(&self) -> String {
         self.get_location().file_name()
     }
+    /// Get the name of an item, including any extension.
+    fn get_full_name(&self) -> String {
+        self.get_location().file_with_extension()
+    }
     /// Move the given item to a new location.
     ///
     /// `new_location` - absolute path to the new location

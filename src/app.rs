@@ -113,7 +113,7 @@ impl App {
         Ok(Message::FolderChanged)
     }
 
-    pub fn remove_item(&mut self, item_type: &ItemType, name: &String) -> JotResult<Message> {
+    pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
         match item_type {
             ItemType::Fd | ItemType::Folder => {
                 let vault = self.vaults.ref_current()?;
@@ -136,7 +136,7 @@ impl App {
 
     pub fn rename_item(
         &mut self,
-        item_type: &ItemType,
+        item_type: ItemType,
         name: &String,
         new_name: &String,
     ) -> JotResult<Message> {
@@ -186,7 +186,7 @@ impl App {
 
     pub fn move_item(
         &mut self,
-        item_type: &ItemType,
+        item_type: ItemType,
         name: &String,
         new_location: &PathBuf,
     ) -> JotResult<Message> {
@@ -225,7 +225,7 @@ impl App {
 
     pub fn move_item_to_new_vault(
         &mut self,
-        item_type: &VaultItemType,
+        item_type: VaultItemType,
         name: &String,
         vault_name: &String,
     ) -> JotResult<Message> {
@@ -249,7 +249,7 @@ impl App {
                 let mut note = vault.get_note_with_name(name)?;
                 let new_absolute_path = process_path(&join_paths(vec![
                     new_vault.get_location().as_path(),
-                    &PathBuf::from(note.get_name()),
+                    &PathBuf::from(note.get_full_name()),
                 ]));
 
                 note.relocate(new_absolute_path.to_owned())?;
@@ -305,10 +305,10 @@ impl App {
             Command::Open { name } => self.open_note(name),
             Command::Folder { name } => self.create_folder(name),
             Command::Chdir { path } => self.change_directory(path),
-            Command::Remove { item_type, name } => self.remove_item(item_type, name),
-            Command::Rename { item_type, name, new_name, } => self.rename_item(item_type, name, new_name),
-            Command::Move { item_type, name, new_location, } => self.move_item(item_type, name, new_location),
-            Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(item_type, name, vault_name),
+            Command::Remove { item_type, name } => self.remove_item(*item_type, name),
+            Command::Rename { item_type, name, new_name, } => self.rename_item(*item_type, name, new_name),
+            Command::Move { item_type, name, new_location, } => self.move_item(*item_type, name, new_location),
+            Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(*item_type, name, vault_name),
             Command::List => self.list(),
             Command::Config { config_type, value } => self.set_config(config_type, value),
             _ => Ok(Message::Empty),
@@ -317,34 +317,68 @@ impl App {
 }
 
 #[cfg(test)]
+#[rustfmt::skip]
 mod test {
     use super::*;
 
-    #[test]
-    fn create_note_test() {
-        run_test(|| {
-            let (mut app, vault_name) = create_app_and_vault();
-            app.create_note(&"test_note".to_string()).unwrap();
-            app = App::new().unwrap();
-            app.open_note(&"test_note".to_string()).unwrap();
-        })
+    macro_rules! run {
+        ( $( $x:expr ),* ) => {
+            let mut tests = Vec::new();
+            tests.push(Pass(Command::Vault { show_loc: false, name: Some("vault_1".to_string()), location: Some(test_vaults())}));
+            tests.push(Pass(Command::Enter { name: "vault_1".to_string() }));
+
+            $(
+                tests.push($x);
+            )*
+            run_test(|| {
+                execute_commands(tests);
+            })
+        }
     }
 
     #[test]
-    fn create_note_test_2() {
-        run_test(|| {
-            let (mut app, vault_name) = create_app_and_vault();
-            execute_commands(
-                &mut app,
-                vec![
-                    Command::Note {
-                        name: "test_note2".to_string(),
-                    },
-                    Command::Open {
-                        name: "test_note2".to_string(),
-                    },
-                ],
-            );
-        })
+    fn note_test() {
+        run![
+            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Open { name: "test_note".to_string() }),
+            Pass(Command::Remove { item_type: ItemType::Nt, name: "test_note".to_string() }),
+            Fail(Command::Open { name: "test_note".to_string() }),
+            Fail(Command::Open { name: "fake_note".to_string() })
+        ];
+    }
+
+    #[test]
+    fn cannot_create_duplicate_vaults() {
+        run![
+            Pass(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }),
+            Pass(Command::Enter { name: "vault_2".to_string() }),
+            Fail(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }) // Err: duplicate
+        ];
+    }
+
+    #[test]
+    fn move_note_between_vaults() {
+        run![
+            Pass(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }),
+            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Open { name: "test_note".to_string() }),
+            Pass(Command::Vmove { item_type: VaultItemType::Nt, name: "test_note".to_string(), vault_name: "vault_2".to_string() }),
+            Fail(Command::Open { name: "test_note".to_string() }), // Err: open test_note from vault_1
+            Pass(Command::Enter { name: "vault_2".to_string() }),
+            Pass(Command::Open { name: "test_note".to_string() })
+        ];
+    }
+
+    #[test]
+    fn move_folder_between_vaults() {
+        run![
+            Pass(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }),
+            Pass(Command::Folder { name: "folder_1".to_string() }),
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Vmove { item_type: VaultItemType::Fd, name: "folder_1".to_string(), vault_name: "vault_2".to_string() }),
+            Fail(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Enter { name: "vault_2".to_string() }),
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") })
+        ];
     }
 }

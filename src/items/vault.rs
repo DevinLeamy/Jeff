@@ -80,15 +80,17 @@ impl Item for Vault {
         }
 
         std::fs::create_dir(&absolute_path.as_path())?;
+
+        let store_path = JotPath::from_parent(&path, ".jot/data".to_string()).to_path_buf();
+        let mut new_store = VaultStore::load_path(store_path.clone());
+        new_store.set_absolute_path(store_path);
+
         let new_vault = Vault {
             path: path.to_owned(),
             name: path.file_name(),
             folders: vec![],
             notes: vec![],
-            vault_store: VaultStore::load_path(join_paths(vec![
-                absolute_path.to_str().unwrap(),
-                ".jot/data",
-            ])),
+            vault_store: new_store,
         };
 
         /*
@@ -221,8 +223,8 @@ impl Vault {
 pub struct VaultStore {
     /// relative path from this vault to the active folder
     current_folder: Option<String>,
-    /// absolute path to the vault store (in `.jot`, relative to [[Vault]])
-    /// Option<T> type because [[FileIO]] has [[Default]] trait bound
+    /// absolute path to the vault store data (some `<vault-path>/.jot/data`)
+    /// Option<T> type because [FileIO] has [Default] trait bound
     location: Option<PathBuf>,
     /// aliases for notes inside of the vault
     aliases: HashMap<String, String>,
@@ -244,10 +246,7 @@ impl FileIO for VaultStore {
      * store.
      */
     fn path(&self) -> PathBuf {
-        join_paths(vec![
-            self.location.clone().unwrap(),
-            PathBuf::from(".jot/data"),
-        ])
+        self.location.clone().unwrap()
     }
 }
 
@@ -267,27 +266,5 @@ impl VaultStore {
 
     pub fn get_folder_path(&self) -> Option<String> {
         self.current_folder.clone()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tests::*;
-
-    #[test]
-    fn cannot_create_duplicate_vaults() {
-        run_test(|| {
-            let vault_1 = test_path("vault_1");
-            let vault_2 = test_path("vault_1");
-
-            Vault::create(vault_1.clone()).unwrap();
-
-            assert!(vault_1.exists() && vault_1.is_dir());
-            match Vault::create(vault_2) {
-                Ok(_) => assert!(false), // should never happen
-                Err(_) => (),
-            }
-        });
     }
 }

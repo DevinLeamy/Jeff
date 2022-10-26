@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use std::path::PathBuf;
 
 use crate::prelude::*;
-use std::fs::{create_dir_all, remove_dir_all, rename};
+use std::fs::{create_dir, remove_dir_all, rename};
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -79,7 +79,7 @@ impl Item for Folder {
 
         // TODO: enforce that the folder is only one nesting level deeper
         // than the current note.
-        create_dir_all(absolute_path)?;
+        create_dir(absolute_path)?;
 
         Ok(folder)
     }

@@ -34,7 +34,7 @@ impl Editor {
     #[cfg(test)]
     pub fn open_note(&self, note: Note) -> JotResult<()> {
         let note_path = note.get_location();
-        assert!(Note::is_valid_path(&note_path.to_path_buf()) && note_path.is_file());
+        assert!(Note::is_valid_path(&note_path.to_path_buf()) && note_path.to_path_buf().is_file());
 
         Ok(())
     }

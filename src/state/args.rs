@@ -52,7 +52,7 @@ pub struct Args {
     pub command: Command,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum Command {
     /// create a vault or list vaults
     #[clap(override_usage(
