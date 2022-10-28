@@ -15,7 +15,7 @@ ___  /  \\____/\\__/
 /___/
 \x1b[0m
 
-\x1b[0;34mv0.1.1\x1b[0m | crafted with ❤️ by \x1b[0;34maraekiel\x1b[0m
+\x1b[0;34mv0.1.1\x1b[0m | crafted with ❤️ by \x1b[0;34maraekiel\x1b[0m and \x1b[0;34mdevinleamy\x1b[0m
 
 
 usage: jt <command>
@@ -33,8 +33,7 @@ interact with items
     \x1b[0;34mopen\x1b[0m, \x1b[0;34mop\x1b[0m        open a note from current folder
     \x1b[0;34mchdir\x1b[0m, \x1b[0;34mcd\x1b[0m       change folder within current vault
     \x1b[0;34mlist\x1b[0m, \x1b[0;34mls\x1b[0m        print dir tree of current folder
-    \x1b[0;34malias\x1b[0m, \x1b[0;34mal\x1b[0m       set aliases for a note
-    \x1b[0;34mtoday\x1b[0m           edit daily note
+    \x1b[0;34mtoday\x1b[0m, \x1b[0;34mto\x1b[0m       edit daily note
 
 perform fs operations on items
     \x1b[0;34mremove\x1b[0m, \x1b[0;34mrm\x1b[0m      remove an item 
@@ -73,6 +72,7 @@ pub enum Command {
     /// create or edit the daily note
     /// format: YYYY-MM-DD
     #[clap(override_usage("jt today"))]
+    #[clap(alias = "to")]
     Today {
         /// create the daily note, if it does not exist
         #[clap(parse(from_flag), short = 'c', long = "create")]
@@ -95,21 +95,21 @@ pub enum Command {
         name: String,
     },
     /// creates an alias for a note
-    #[clap(override_usage(
-        "jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"
-    ))]
-    #[clap(alias = "al")]
-    Alias {
-        /// name of the note being given an alias
-        #[clap(value_parser, name = "note name")]
-        name: String,
-        /// remove alias from a note
-        #[clap(parse(from_flag), short = 'r', long = "remove", name = "remove")]
-        remove_alias: bool,
-        /// alias being given to the note
-        #[clap(value_parser, name = "alias", required_unless_present("remove"))]
-        maybe_alias: Option<String>,
-    },
+    // #[clap(override_usage(
+    //     "jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"
+    // ))]
+    // #[clap(alias = "al")]
+    // Alias {
+    //     /// name of the note being given an alias
+    //     #[clap(value_parser, name = "note name")]
+    //     name: String,
+    //     /// remove alias from a note
+    //     #[clap(parse(from_flag), short = 'r', long = "remove", name = "remove")]
+    //     remove_alias: bool,
+    //     /// alias being given to the note
+    //     #[clap(value_parser, name = "alias", required_unless_present("remove"))]
+    //     maybe_alias: Option<String>,
+    // },
     /// open a note (from the current folder)
     #[clap(alias = "op")]
     Open {

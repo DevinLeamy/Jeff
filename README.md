@@ -1,6 +1,5 @@
 # *jot*
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/3786cfe55477410eacc695685338b788)](https://www.codacy.com/gh/araekiel/jot/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=araekiel/jot&amp;utm_campaign=Badge_Grade)
 <a href="LICENSE"><img alt="Release" src="https://img.shields.io/badge/license-MIT-green"></a>
 <a href="https://github.com/araekiel/jot/releases/tag/v0.1.1"><img alt="Release" src="https://img.shields.io/badge/release-v0.1.1-red"></a>
 <a href="https://crates.io/crates/jt"><img alt="Cargo" src="https://img.shields.io/badge/cargo-jt-blue"></a>
@@ -12,6 +11,7 @@
   <a href="#changelog">Changelog</a> •
   <a href="#build-from-source">Build from Source</a> •
   <a href="#dependencies">Dependencies</a> •
+  <a href="#testing">Testing</a> •
   <a href="#authors">Authors</a> •
   <a href="#license">License</a>
 </p>
@@ -98,6 +98,22 @@ $ jt folder newfolder
 
 `note` and `folder`, both work similarly and create the corresponding items in ***current folder***. When a vault is first created, the ***current folder*** is set to its root.
 
+#### ***Create and edit daily note in the current vault***
+
+Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note and `jt today --create` will create the daily note, if none exists.
+
+```bash
+$ jt today --create
+```
+
+```bash
+$ jt today 
+```
+
+
+
+
+
 #### ***Change folder***
 
 ```bash
@@ -121,14 +137,15 @@ $ jt list
 ```
 
 When needed `list` command will print the dir tree of current folder.
-All notes will be highlighted in ***blue*** ![#1589F0](https://via.placeholder.com/15/1589F0/1589F0.png).
+All notes will be highlighted in ***blue***,
+vaults will be highlighted in ***purple***, and folders will appear ***red***.
 
 This is what the dir tree will look like with this vault's root as the current folder.
 
 ```bash
-newvault
-├── newfolder                      
-└── newnote   # highlighted in blue
+newvault        # purple
+├── newfolder   # red                     
+└── newnote     # highlighted in blue
 ```
 
 #### ***Fs operations***
@@ -242,12 +259,23 @@ Pass in commands and arguments after '***--***'.
 - [***serde***](https://serde.rs/) & [***toml***](https://docs.rs/toml/latest/toml/) have been used in tandem to read and write data files. 
 - [***clap***](https://docs.rs/clap/latest/clap/) has been used to create the command line interface.
 - [***directories***](https://docs.rs/directories/latest/directories/) has been used to generate os-dependent config and data file locations.
-- [***fs_extra***](https://docs.rs/fs_extra/latest/fs_extra/) has been used for recursive move of folders.
+- [***chrono***](https://docs.rs/chrono/0.4.22/chrono/) has been used to determine datetime information. 
+- [***anyhow***](https://docs.rs/anyhow/1.0.66/anyhow/) has been used to handle errors.
+- [***colored***](https://docs.rs/colored/latest/colored/) has been used to display colored text output.
+- [***lazy_static***](https://docs.rs/lazy_static/latest/lazy_static/) has been used to obtain static values created at runtime. 
+
+## Testing
+
+All tests can be run using 
+```bash
+$ cargo test -- --test-threads=1
+```
 
 ## Authors
 
 - **araekiel** - [Github](https://github.com/araekiel)
+- **devinleamy** - [Github](https://github.com/DevinLeamy)
 
 ## License
 
-[MIT License](https://github.com/araekiel/jot/blob/main/LICENSE) | Copyright (c) 2022 Kumar Shashwat
+[MIT License](https://github.com/araekiel/jot/blob/main/LICENSE) 

@@ -305,8 +305,7 @@ impl App {
             Command::Enter { name } => self.enter_vault(name),
             Command::Note { name } => self.create_note(name),
             Command::Today { create_if_dne } => self.today(*create_if_dne),
-            #[allow(unused_variables)]
-            Command::Alias { name, maybe_alias, remove_alias, } => { todo!() }
+            // Command::Alias { name, maybe_alias, remove_alias, } => { todo!() }
             Command::Open { name } => self.open_note(name),
             Command::Folder { name } => self.create_folder(name),
             Command::Chdir { path } => self.change_directory(path),
