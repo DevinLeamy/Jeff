@@ -132,20 +132,4 @@ impl Folder {
 
         Ok(())
     }
-
-    pub fn list_with_buffer(&self, buffer: String) {
-        println!("{}└── {}", buffer, self.to_display_string());
-
-        for folder in self.get_folders_sorted() {
-            folder.list_with_buffer(format!("{}    ", buffer).to_string());
-        }
-
-        for (i, note) in self.get_notes_sorted().iter().enumerate() {
-            if i == self.notes.len() - 1 {
-                println!("{}    └── {}", buffer, note.to_display_string());
-            } else {
-                println!("{}    ├── {}", buffer, note.to_display_string());
-            }
-        }
-    }
 }

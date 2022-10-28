@@ -1,9 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use crate::prelude::JotResult;
 use crate::App;
-use crate::{enums::Item as ItemType, state::Command::*};
 use std::sync::Mutex;
 use std::{panic::UnwindSafe, path::PathBuf};
 

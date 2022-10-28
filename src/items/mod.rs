@@ -9,5 +9,3 @@ pub use folder::*;
 pub use item::*;
 pub use note::*;
 pub use vault::*;
-
-pub type Error = std::io::Error;

@@ -18,14 +18,14 @@ impl App {
     ) -> JotResult<Message> {
         if let (Some(name), Some(location)) = (name, location) {
             self.vaults.create_vault(name, location)?;
-            return Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()));
+            Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()))
         } else if name.is_some() && show_loc {
             let name = name.clone().unwrap();
             self.vaults.show_vault_location(name);
-            return Ok(Message::Empty);
+            Ok(Message::Empty)
         } else {
             self.vaults.list_vaults(show_loc);
-            return Ok(Message::Empty);
+            Ok(Message::Empty)
         }
     }
 
@@ -134,7 +134,6 @@ impl App {
             }
             ItemType::Vl | ItemType::Vault => {
                 self.vaults.remove_vault(name)?;
-                return Ok(Message::Empty);
             }
         };
 
@@ -173,7 +172,20 @@ impl App {
     }
 
     pub fn list(&self) -> JotResult<Message> {
-        self.vaults.ref_current()?.list();
+        let vault = self.vaults.ref_current()?;
+
+        if let Ok(Some(active_folder)) = vault.get_active_folder() {
+            println!(
+                "{} > {}",
+                vault.to_display_string(),
+                active_folder.to_display_string()
+            );
+            active_folder.list();
+        } else {
+            println!("{}", vault.to_display_string());
+            vault.list();
+        }
+
         return Ok(Message::Empty);
     }
 
@@ -211,13 +223,17 @@ impl App {
                 folder.relocate(new_absolute_path.to_owned())?;
             }
             ItemType::Nt | ItemType::Note => {
-                // new location is relative to the root of the vault
+                /*
+                 * New location is relative to current location
+                 * TODO: currently note needs to be the name of the note. Ideally,
+                 * we will make it the relative path to the note.
+                 */
                 let vault = self.vaults.ref_current()?;
-                let mut note = vault.get_note_with_name(name)?;
+                let mut note = vault.get_note_from_active_folder(name)?;
                 let new_absolute_path = process_path(&join_paths(vec![
-                    vault.get_location().as_path(),
+                    vault.get_active_location().as_path(),
                     new_location,
-                    &PathBuf::from(note.get_name()),
+                    &PathBuf::from(note.get_full_name()),
                 ]));
 
                 note.relocate(new_absolute_path.to_owned())?;
@@ -382,6 +398,22 @@ mod test {
             Fail(Command::Chdir { path: PathBuf::from("folder_1") }),
             Pass(Command::Enter { name: "vault_2".to_string() }),
             Pass(Command::Chdir { path: PathBuf::from("folder_1") })
+        ];
+    }
+
+    #[test]
+    fn move_note_between_folders() {
+        run![
+            Pass(Command::Folder { name: "folder_1".to_string() }),
+            Pass(Command::Folder { name: "folder_2".to_string() }),
+            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Move { item_type: ItemType::Nt, name: "test_note".to_string(), new_location: PathBuf::from("folder_1") }),
+            Fail(Command::Open { name: "test_note".to_string() }), // Err: test_note was moved to folder_1 
+            Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
+            Pass(Command::Open { name: "test_note".to_string() }),
+            Pass(Command::Move { item_type: ItemType::Nt, name: "test_note".to_string(), new_location: PathBuf::from("../folder_2") }),
+            Pass(Command::Chdir { path: PathBuf::from("../folder_2") }),
+            Pass(Command::Open { name: "test_note".to_string() })
         ];
     }
 

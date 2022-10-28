@@ -2,6 +2,7 @@ use anyhow::anyhow;
 
 use crate::items::{Folder, Item, Note};
 use crate::output::error::JotResult;
+use crate::prelude::JotDisplay;
 
 pub trait Collection: Item {
     fn get_note_with_name(&self, name: &String) -> JotResult<Note> {
@@ -48,5 +49,40 @@ pub trait Collection: Item {
         folders.sort_by_key(|folder| folder.get_name());
 
         folders
+    }
+
+    /**
+     * TODO: Move into [JotDisplay] trait
+     */
+    fn list(&self) {
+        for folder in self.get_folders_sorted() {
+            println!("└── {}", folder.to_display_string());
+            folder.list_with_buffer("".to_string());
+        }
+
+        let notes = self.get_notes_sorted();
+        for (i, note) in notes.iter().enumerate() {
+            if i == notes.len() - 1 {
+                println!("└── {}", note.to_display_string());
+            } else {
+                println!("├── {}", note.to_display_string());
+            }
+        }
+    }
+
+    fn list_with_buffer(&self, buffer: String) {
+        for folder in self.get_folders_sorted() {
+            println!("{} └── {}", buffer, folder.to_display_string());
+            folder.list_with_buffer(format!("{}    ", buffer).to_string());
+        }
+
+        let notes = self.get_notes_sorted();
+        for (i, note) in notes.iter().enumerate() {
+            if i == notes.len() - 1 {
+                println!("{}    └── {}", buffer, note.to_display_string());
+            } else {
+                println!("{}    ├── {}", buffer, note.to_display_string());
+            }
+        }
     }
 }

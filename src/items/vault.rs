@@ -135,6 +135,15 @@ impl Item for Vault {
 
 impl Vault {
     pub fn get_note_from_active_folder(&self, name: &String) -> JotResult<Note> {
+        if let Ok(Some(active_folder)) = self.get_active_folder() {
+            Ok(active_folder.get_note_with_name(name)?)
+        } else {
+            // If there is no active folder, search the vault itself.
+            Ok(self.get_note_with_name(name)?)
+        }
+    }
+
+    pub fn get_active_folder(&self) -> JotResult<Option<Folder>> {
         if let Some(active_folder_path) = self.get_active_folder_path() {
             /*
              * We use active_folder_path (the relative path to the active folder) as
@@ -144,9 +153,9 @@ impl Vault {
              * This can, and should, be improved.
              */
             let active_folder = self.get_folder_with_name(&active_folder_path)?;
-            Ok(active_folder.get_note_with_name(name)?)
+            Ok(Some(active_folder))
         } else {
-            Ok(self.get_note_with_name(name)?)
+            Ok(None)
         }
     }
 
@@ -230,25 +239,6 @@ impl Vault {
 impl Vault {
     // pub fn remove_alias_from_note() {}
     // pub fn set_alias() {}
-
-    /**
-     * TODO: Move into [JotDisplay] trait
-     */
-    pub fn list(&self) {
-        println!("{}", self.to_display_string());
-
-        for folder in self.get_folders_sorted() {
-            folder.list_with_buffer("".to_string());
-        }
-
-        for (i, note) in self.get_notes_sorted().iter().enumerate() {
-            if i == self.notes.len() - 1 {
-                println!("└── {}", note.to_display_string());
-            } else {
-                println!("├── {}", note.to_display_string());
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
