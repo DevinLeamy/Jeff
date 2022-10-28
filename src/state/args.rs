@@ -15,7 +15,7 @@ ___  /  \\____/\\__/
 /___/
 \x1b[0m
 
-\x1b[0;34mv0.1.1\x1b[0m | crafted with ❤️ by \x1b[0;34maraekiel\x1b[0m and \x1b[0;34mdevinleamy\x1b[0m
+\x1b[0;34mv0.2.1\x1b[0m | crafted with ❤️ by \x1b[0;34maraekiel\x1b[0m and \x1b[0;34mdevinleamy\x1b[0m
 
 
 usage: jt <command>
