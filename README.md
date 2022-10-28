@@ -23,8 +23,7 @@ It uses the same format of storage as Obsidian, i.e. markdown files for notes, a
 Commands that encompass all basic needs are included. Each command has an alias (two letter abbreviation) to further increase rapidity. 
 
 <br>
-
-<img alt="Screenshot" src="assets/imgs/jot.png"/>
+<img width="745" alt="image" src="https://user-images.githubusercontent.com/45083086/198465726-104db353-a6ef-4daf-88c3-30e9b6298f07.png">
 
 <br>
 
