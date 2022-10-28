@@ -11,6 +11,9 @@ mod state;
 mod tests;
 mod utils;
 
+#[macro_use]
+extern crate lazy_static;
+
 use crate::{
     app::App,
     output::{Message, Output},

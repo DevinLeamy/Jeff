@@ -287,6 +287,7 @@ dependencies = [
  "clap",
  "colored",
  "directories",
+ "lazy_static",
  "serde",
  "toml",
 ]

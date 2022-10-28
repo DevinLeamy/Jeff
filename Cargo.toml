@@ -19,6 +19,7 @@ directories = "4.0.1"
 chrono = "0.4.22"
 anyhow = "1.0"
 colored = "2"
+lazy_static = "1.4.0"
 
 [features]
 default = ["stmt_expr_attributes"]

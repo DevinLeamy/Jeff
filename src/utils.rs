@@ -58,7 +58,7 @@ pub fn application_config_path() -> PathBuf {
         let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
         project_dirs.config_dir().to_path_buf()
     } else {
-        PathBuf::from(TEST_CONFIG)
+        (*TEST_CONFIG).clone()
     }
 }
 
@@ -67,7 +67,7 @@ pub fn application_data_path() -> PathBuf {
         let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
         project_dirs.data_dir().to_path_buf()
     } else {
-        PathBuf::from(TEST_CONFIG)
+        (*TEST_CONFIG).clone()
     }
 }
 

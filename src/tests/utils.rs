@@ -6,15 +6,25 @@ use std::sync::Mutex;
 use std::{panic::UnwindSafe, path::PathBuf};
 
 static VAULT_COUNTER: Mutex<i32> = Mutex::new(0);
-pub const TEST_HOME: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests";
-pub const TEST_VAULTS: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests/vaults";
-pub const TEST_CONFIG: &'static str = "/Users/Devin/Desktop/Github/OpenSource/jot/tests/config";
+
+lazy_static! {
+    pub static ref TEST_HOME: PathBuf =
+        PathBuf::from(format!("{}/tests", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_VAULTS: PathBuf =
+        PathBuf::from(format!("{}/tests/vaults", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_CONFIG: PathBuf =
+        PathBuf::from(format!("{}/tests/config", env!("CARGO_MANIFEST_DIR")));
+}
 pub const INITIAL_VAULT: &'static str = "vault_1";
 
+pub fn test_vaults() -> PathBuf {
+    (*TEST_VAULTS).clone()
+}
+
 fn setup() {
-    std::fs::create_dir_all(TEST_HOME).unwrap();
-    std::fs::create_dir_all(format!("{}/vaults", TEST_HOME)).unwrap();
-    std::fs::create_dir_all(format!("{}/config", TEST_HOME)).unwrap();
+    std::fs::create_dir_all(&*TEST_HOME).unwrap();
+    std::fs::create_dir_all(&*TEST_VAULTS).unwrap();
+    std::fs::create_dir_all(&*TEST_CONFIG).unwrap();
     *VAULT_COUNTER.lock().unwrap() = 0;
 }
 
@@ -30,14 +40,7 @@ where
 }
 
 fn teardown() {
-    std::fs::remove_dir_all(TEST_HOME).unwrap();
-}
-
-pub fn test_vaults() -> PathBuf {
-    PathBuf::from(TEST_VAULTS)
-}
-pub fn test_config(name: &str) -> PathBuf {
-    PathBuf::from(TEST_CONFIG)
+    std::fs::remove_dir_all(&*TEST_HOME).unwrap();
 }
 
 pub fn next_vault() -> String {
