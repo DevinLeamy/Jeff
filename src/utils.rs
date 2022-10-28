@@ -1,11 +1,9 @@
 use crate::prelude::*;
 use chrono;
-use colored::*;
 use directories::ProjectDirs;
 use std::path::{Path, PathBuf};
 
-use anyhow::anyhow;
-
+#[allow(unused)]
 fn valid_name(name: &str) -> bool {
     name.chars().all(|char| !r#"\/?%*:|"<>"#.contains(char))
 }
@@ -15,7 +13,6 @@ pub fn join_paths<T: AsRef<Path>>(paths: Vec<T>) -> PathBuf {
     for path in paths {
         full_path.push(path);
     }
-    // println!("FULL {:?}", full_path);
 
     full_path
 }
@@ -54,10 +51,6 @@ pub fn daily_note_name() -> String {
 
 pub fn path_to_string(path: PathBuf) -> String {
     path.to_str().unwrap().to_string()
-}
-
-pub fn color_text(text: &String, color: Color) -> String {
-    text.color(color).to_string()
 }
 
 pub fn application_config_path() -> PathBuf {

@@ -10,6 +10,7 @@ pub use message::Message;
 
 pub enum Output {
     Message(Message),
+    #[allow(unused)]
     Error(Error),
 }
 

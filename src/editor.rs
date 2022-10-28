@@ -1,7 +1,9 @@
+#[cfg(not(test))]
 use std::process::Command;
 
 use crate::prelude::*;
 
+#[allow(unused)]
 pub struct Editor {
     /// CLI name of the editor (ex: "nvim" or "vim")
     name: String,

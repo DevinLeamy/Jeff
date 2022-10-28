@@ -56,10 +56,6 @@ impl JotPath {
         path.into()
     }
 
-    pub fn set_path(&mut self, new_path: &PathBuf) {
-        *self = JotPath::from(new_path.to_owned())
-    }
-
     pub fn file_name(&self) -> String {
         self.path.file_stem().unwrap().to_str().unwrap().to_string()
     }

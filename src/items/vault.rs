@@ -1,15 +1,13 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::{create_dir, remove_dir_all, rename};
+use std::fs::{remove_dir_all, rename};
 use std::path::PathBuf;
 
 use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Vault {
-    /// name of the vault
-    name: String,
     /// absolute path of the vault
     path: JotPath,
     /// folders inside of the vault,
@@ -87,7 +85,6 @@ impl Item for Vault {
 
         let new_vault = Vault {
             path: path.to_owned(),
-            name: path.file_name(),
             folders: vec![],
             notes: vec![],
             vault_store: new_store,
@@ -110,7 +107,6 @@ impl Item for Vault {
 
         let mut new_vault = Vault {
             path: path.to_owned(),
-            name: path.file_name(),
             folders: vec![],
             notes: vec![],
             vault_store: VaultStore::load_path(
@@ -222,13 +218,6 @@ impl Vault {
             .set_folder_path(Some(path_to_string(destination_folder)));
 
         Ok(())
-    }
-
-    /**
-     * Retrieve the path to the vault's persisted data store.
-     */
-    pub fn get_data_path(&self) -> PathBuf {
-        join_paths(vec![self.path.to_string().as_str(), ".jot/data"])
     }
 
     fn get_active_folder_path(&self) -> Option<String> {

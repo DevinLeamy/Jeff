@@ -4,7 +4,9 @@ use std::fmt::Display;
 
 pub enum Message {
     VaultEntered(String),
+    #[allow(unused)]
     NoteAliasCreated(String, String),
+    #[allow(unused)]
     NoteAliasRemoved(String, String),
     ItemCreated(Item, String),
     ItemRemoved(Item, String),
