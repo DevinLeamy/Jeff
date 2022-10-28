@@ -1,6 +1,8 @@
 use crate::enums::Item;
 use std::fmt::Display;
 
+pub type JotResult<T> = anyhow::Result<T>;
+
 #[allow(unused)]
 #[derive(Debug)]
 pub enum Error {
@@ -35,7 +37,8 @@ impl Display for Error {
                     process_io_error(error.to_string())
                 ),
                 Error::InvalidName => "invalid name".to_string(),
-                Error::AliasDoesNotExist(name) => format!("alias for note \x1b[0;34m{}\x1b[0m does not exist", name),
+                Error::AliasDoesNotExist(name) =>
+                    format!("alias for note \x1b[0;34m{}\x1b[0m does not exist", name),
                 Error::SameName => "new name is same as old name".to_string(),
                 Error::SameLocation => "new location is same as old location".to_string(),
                 Error::PathNotFound => "couldn't find the path specified".to_string(),
@@ -60,9 +63,9 @@ impl Display for Error {
     }
 }
 
-impl From<fs_extra::error::Error> for Error {
-    fn from(error: fs_extra::error::Error) -> Self {
-        Error::MoveError(process_io_error(error.to_string()))
+impl From<Error> for String {
+    fn from(error: Error) -> Self {
+        format!("{}", error).to_string()
     }
 }
 

@@ -1,9 +1,12 @@
 use crate::enums::{ConfigType, Item, VaultItem};
+use colored::Colorize;
 use std::fmt::Display;
 
 pub enum Message {
     VaultEntered(String),
+    #[allow(unused)]
     NoteAliasCreated(String, String),
+    #[allow(unused)]
     NoteAliasRemoved(String, String),
     ItemCreated(Item, String),
     ItemRemoved(Item, String),
@@ -16,12 +19,18 @@ pub enum Message {
     Empty,
 }
 
+impl Message {
+    fn create_message(content: String) -> String {
+        format!("ϟ {} ϟ {}", "Jot".yellow(), content)
+    }
+}
+
 impl Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
-            match self {
+            Message::create_message(match self {
                 Message::VaultEntered(name) => format!("entered \x1b[0;34m{}\x1b[0m", name),
                 Message::ItemCreated(item_type, name) =>
                     format!("{} \x1b[0;34m{}\x1b[0m created", item_type.full(), name),
@@ -50,13 +59,19 @@ impl Display for Message {
                     value
                 ),
                 Message::NoteAliasCreated(note_name, alias_name) => {
-                    format!("created alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m", note_name, alias_name)
-                },
+                    format!(
+                        "created alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m",
+                        note_name, alias_name
+                    )
+                }
                 Message::NoteAliasRemoved(note_name, alias_name) => {
-                    format!("removed alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m", note_name, alias_name)
+                    format!(
+                        "removed alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m",
+                        note_name, alias_name
+                    )
                 }
                 Message::Empty => "".to_string(),
-            }
+            })
         )
     }
 }

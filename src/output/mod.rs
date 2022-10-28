@@ -1,13 +1,16 @@
 pub mod error;
+pub mod jot_display;
 pub mod message;
 
 use std::fmt::Display;
 
-use error::Error;
+pub use error::{Error, JotResult};
+pub use jot_display::*;
 pub use message::Message;
 
 pub enum Output {
     Message(Message),
+    #[allow(unused)]
     Error(Error),
 }
 
