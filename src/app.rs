@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
-use crate::{enums::ConfigType, prelude::*};
 use anyhow::anyhow;
+use dialoguer::{theme::ColorfulTheme, Confirm};
+
+use crate::{enums::ConfigType, prelude::*};
 
 pub struct App {
     config: Config,
@@ -121,6 +123,16 @@ impl App {
     }
 
     pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
+        // display a dialog to confirm the action
+        let remove_item = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt(format!("Are you sure you want to remove {}?", name))
+            .interact()
+            .unwrap();
+
+        if !remove_item {
+            return Ok(Message::Empty);
+        }
+
         match item_type {
             ItemType::Fd | ItemType::Folder => {
                 let vault = self.vaults.ref_current()?;
@@ -137,7 +149,7 @@ impl App {
             }
         };
 
-        return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
+        Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()))
     }
 
     pub fn rename_item(

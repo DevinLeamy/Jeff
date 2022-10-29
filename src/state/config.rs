@@ -8,6 +8,11 @@ use crate::utils::application_config_path;
 pub struct EditorData {
     pub editor: String,
     pub conflict: bool,
+    /*
+     * pub vault_color: String,
+     * pub folder_color: String,
+     * pub note_color: String,
+     */
 }
 
 impl Default for EditorData {
