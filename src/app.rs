@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
-use dialoguer::{console::Term, theme::ColorfulTheme, Confirm, FuzzySelect};
+
+#[cfg(not(test))]
+use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
 
 use crate::{enums::ConfigType, prelude::*};
 
@@ -87,6 +89,17 @@ impl App {
         Ok(message)
     }
 
+    #[cfg(test)]
+    pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
+        let note = self
+            .vaults
+            .ref_current()?
+            .get_note_from_active_folder(name)?;
+        self.editor.open_note(note)?;
+        Ok(Message::Empty)
+    }
+
+    #[cfg(not(test))]
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
         let vault = self.vaults.ref_current()?;
         let maybe_note = vault.get_note_from_active_folder(name);
@@ -157,10 +170,13 @@ impl App {
 
     pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
         // display a dialog to confirm the action
+        #[cfg(not(test))]
         let remove_item = Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt(format!("Are you sure you want to remove {}?", name))
             .interact()
             .unwrap();
+        #[cfg(test)]
+        let remove_item = true;
 
         if !remove_item {
             return Ok(Message::Empty);
