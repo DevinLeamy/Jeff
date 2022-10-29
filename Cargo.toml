@@ -21,6 +21,7 @@ anyhow = "1.0"
 colored = "2"
 lazy_static = "1.4.0"
 dialoguer = "0.10.2"
+skim = "0.10.1"
 
 [features]
 default = ["stmt_expr_attributes"]

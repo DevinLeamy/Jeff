@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::anyhow;
 use dialoguer::{theme::ColorfulTheme, Confirm};
+use skim::prelude::*;
 
 use crate::{enums::ConfigType, prelude::*};
 
@@ -88,11 +89,56 @@ impl App {
     }
 
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
-        let note = self
-            .vaults
-            .ref_current()?
-            .get_note_from_active_folder(name)?;
-        self.editor.open_note(note)?;
+        let vault = self.vaults.ref_current()?;
+        let maybe_note = vault.get_note_from_active_folder(name);
+
+        /*
+         * If the given name is a valid note, open it. Otherwise, fuzzysearch
+         * for a note.
+         *
+         * TODO: make the fuzzysearch start with input text "name"
+         * TODO: make fuzzysearch have colored text
+         */
+        if let Ok(note) = maybe_note {
+            self.editor.open_note(note)?;
+            return Ok(Message::Empty);
+        }
+
+        let notes = vault.get_notes_sorted();
+
+        // let options = SkimOptionsBuilder::default()
+        //     .height(Some("20%"))
+        //     .interactive(false)
+        //     .expect(Some(name.to_owned()))
+        //     .build()
+        //     .unwrap();
+
+        // let (tx_item, rx_item): (SkimItemSender, SkimItemReceiver) = unbounded();
+        // for note in notes {
+        //     tx_item.send(Arc::new(note.clone()))?;
+        // }
+
+        // // stop waiting for more items
+        // drop(tx_item);
+
+        // let selected_items = Skim::run_with(&options, Some(rx_item))
+        //     .map(|out| out.selected_items)
+        //     .unwrap_or_else(Vec::new);
+
+        // let selected_notes = selected_items
+        //     .iter()
+        //     .map(|selected_item| {
+        //         (**selected_item)
+        //             .as_any()
+        //             .downcast_ref::<Note>()
+        //             .unwrap()
+        //             .to_owned()
+        //     })
+        //     .collect::<Vec<Note>>();
+
+        // if selected_notes.len() == 1 {
+        //     self.editor.open_note(selected_notes[0].clone())?;
+        // }
 
         return Ok(Message::Empty);
     }
