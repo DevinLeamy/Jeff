@@ -391,10 +391,10 @@ dependencies = [
 [[package]]
 name = "dialoguer"
 version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92e7e37ecef6857fdc0c0c5d42fd5b0938e46590c2183cc92dd310a6d078eb1"
+source = "git+https://github.com/DevinLeamy/dialoguer.git#39cc3442b400f64fa22af1a526748d700d15c591"
 dependencies = [
  "console",
+ "fuzzy-matcher",
  "tempfile",
  "zeroize",
 ]

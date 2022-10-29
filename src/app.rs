@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
-use dialoguer::{theme::ColorfulTheme, Confirm};
-use skim::prelude::*;
+use dialoguer::{console::Term, theme::ColorfulTheme, Confirm, FuzzySelect};
 
 use crate::{enums::ConfigType, prelude::*};
 
@@ -105,42 +104,30 @@ impl App {
         }
 
         let notes = vault.get_notes_sorted();
+        let mut selections = vec![];
 
-        // let options = SkimOptionsBuilder::default()
-        //     .height(Some("20%"))
-        //     .interactive(false)
-        //     .expect(Some(name.to_owned()))
-        //     .build()
-        //     .unwrap();
+        for note in notes {
+            selections.push(note.get_name());
+        }
 
-        // let (tx_item, rx_item): (SkimItemSender, SkimItemReceiver) = unbounded();
-        // for note in notes {
-        //     tx_item.send(Arc::new(note.clone()))?;
-        // }
+        let maybe_selection = FuzzySelect::with_theme(&ColorfulTheme::default())
+            .items(&selections.to_owned())
+            .default(0)
+            .search_term(name.to_owned())
+            .interact_opt()?;
 
-        // // stop waiting for more items
-        // drop(tx_item);
+        if let Some(selection) = maybe_selection {
+            let note_name = selections[selection].to_owned();
+            let note = vault.get_note_with_name(&note_name)?;
+            self.editor.open_note(note)?;
 
-        // let selected_items = Skim::run_with(&options, Some(rx_item))
-        //     .map(|out| out.selected_items)
-        //     .unwrap_or_else(Vec::new);
-
-        // let selected_notes = selected_items
-        //     .iter()
-        //     .map(|selected_item| {
-        //         (**selected_item)
-        //             .as_any()
-        //             .downcast_ref::<Note>()
-        //             .unwrap()
-        //             .to_owned()
-        //     })
-        //     .collect::<Vec<Note>>();
-
-        // if selected_notes.len() == 1 {
-        //     self.editor.open_note(selected_notes[0].clone())?;
-        // }
-
-        return Ok(Message::Empty);
+            Ok(Message::Empty)
+        } else {
+            Err(anyhow!(Error::ItemNotFound(
+                ItemType::Note,
+                name.to_owned()
+            )))
+        }
     }
 
     pub fn create_folder(&mut self, name: &String) -> JotResult<Message> {
