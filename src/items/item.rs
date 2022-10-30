@@ -4,6 +4,8 @@ use crate::jot_path::JotPath;
 use crate::output::error::JotResult;
 
 pub trait Item: Clone {
+    /// Get the name of the item type, ex: "folder"
+    fn type_name() -> String;
     /// Get the absolute path of an item
     fn get_location(&self) -> &JotPath;
     /// Get the name of an item. Names do not include file extensions.

@@ -99,17 +99,13 @@ $ jt folder newfolder
 
 #### ***Create and edit daily note in the current vault***
 
-Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note and `jt today --create` will create the daily note, if none exists.
-
-```bash
-$ jt today --create
-```
+Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note. If no daily note exists, 
+you will be prompted to create one.
 
 ```bash
 $ jt today 
+# Create daily note YYYY-MM-DD? (y/n)
 ```
-
-
 
 
 
@@ -136,16 +132,28 @@ $ jt list
 ```
 
 When needed `list` command will print the dir tree of current folder.
-All notes will be highlighted in ***blue***,
-vaults will be highlighted in ***purple***, and folders will appear ***red***.
+All notes will be highlighted in ***yellow***,
+vaults will be highlighted in ***red***, and folders will appear ***blue***.
 
 This is what the dir tree will look like with this vault's root as the current folder.
 
 ```bash
-newvault        # purple
-├── newfolder   # red                     
-└── newnote     # highlighted in blue
+newvault        # red 
+├── newfolder   # blue 
+└── newnote     # yellow 
 ```
+The highlight colors can be configured using `jt config <item-name>-color <color>`. Colors can also be set using `jt config <item-name>-color`, which displays a select containing all available options.
+
+
+Set vault color to red
+```bash
+jt config vault-color red
+```
+Set folder color using selection
+```bash
+jt config folder-color
+```
+
 
 #### ***Fs operations***
 
@@ -188,13 +196,12 @@ $ jt mv nt newnote /newfolder/
 #### ***Handle Jot's config***
 
 ```bash
-$ jt config editor
+$ jt config 
 ```
-
-The value of the provided field will be printed with `config` command. Providing a value as an additional argument with this command will update the field. 
+Will display the current configuration. Add additional arguments, `jt config <config-type> <config-value` to set specific values 
 
 ```bash
-$ jt config editor code.cmd
+$ jt config editor vim 
 ```
 
 #### ***Get Help***

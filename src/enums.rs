@@ -60,6 +60,9 @@ impl VaultItem {
 pub enum ConfigType {
     Editor,
     Conflict,
+    VaultColor,
+    FolderColor,
+    NoteColor,
 }
 
 impl ConfigType {
@@ -67,6 +70,9 @@ impl ConfigType {
         match self {
             ConfigType::Editor => "editor",
             ConfigType::Conflict => "conflict",
+            ConfigType::VaultColor => "vault_color",
+            ConfigType::FolderColor => "folder_color",
+            ConfigType::NoteColor => "note_color",
         }
     }
 }

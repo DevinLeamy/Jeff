@@ -1,10 +1,20 @@
 use std::path::PathBuf;
+use std::sync::Mutex;
 
-use crate::{enums::ConfigType, prelude::*};
 use anyhow::anyhow;
 
+#[cfg(not(test))]
+use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
+
+use crate::{enums::ConfigType, prelude::*};
+
+lazy_static! {
+    // Mutex is used to allow for mutable access of global state.
+    // CONFIG should remain the ONLY mutable global struct.
+    pub static ref CONFIG: Mutex<Config> = Mutex::new(Config::load());
+}
+
 pub struct App {
-    config: Config,
     vaults: Vaults,
     editor: Editor,
 }
@@ -51,48 +61,86 @@ impl App {
         return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
     }
 
-    pub fn today(&mut self, create_if_dne: bool) -> JotResult<Message> {
+    pub fn today(&mut self) -> JotResult<Message> {
         let daily_note_name = daily_note_name();
         let vault = self.vaults.ref_current()?;
-        let maybe_note = vault.get_note_with_name(&daily_note_name);
+        let mut message = Message::Empty;
+        let daily_note = match vault.get_note_with_name(&daily_note_name) {
+            Ok(note) => note,
+            Err(_) => {
+                // daily note does does not exist
+                #[cfg(not(test))]
+                let create_daily_note = Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt(format!("Create daily note {}?", daily_note_name))
+                    .interact()
+                    .unwrap();
+                #[cfg(test)]
+                let create_daily_note = true;
 
-        if maybe_note.is_err() && !create_if_dne {
-            return Err(anyhow!(
-                "Daily note does not exist, consider supplying the --create flag"
-            ));
-        }
-
-        /*
-         * Edit the daily note. If --create is supplied, create and edit the
-         * daily note.
-         */
-        let message;
-        let note = if create_if_dne {
-            /*
-             * We use vault.get_location() rather than vault.get_active_location() here because daily notes
-             * are created per-vault, not per-folder. Currently, they are always top-level.
-             */
-            let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
-            message = Message::ItemCreated(ItemType::Nt, daily_note_name);
-            Note::create(note_path)?
-        } else {
-            message = Message::Empty;
-            maybe_note.unwrap()
+                if create_daily_note {
+                    let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
+                    message = Message::ItemCreated(ItemType::Nt, daily_note_name);
+                    Note::create(note_path)?
+                } else {
+                    return Err(anyhow!("Daily note does not exist"));
+                }
+            }
         };
 
-        self.editor.open_note(note)?;
+        self.editor.open_note(daily_note)?;
 
         Ok(message)
     }
 
+    #[cfg(test)]
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
         let note = self
             .vaults
             .ref_current()?
             .get_note_from_active_folder(name)?;
         self.editor.open_note(note)?;
+        Ok(Message::Empty)
+    }
 
-        return Ok(Message::Empty);
+    #[cfg(not(test))]
+    pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
+        let vault = self.vaults.ref_current()?;
+        let maybe_note = vault.get_note_from_active_folder(name);
+
+        /*
+         * If the given name is a valid note, open it. Otherwise, fuzzysearch
+         * for a note.
+         */
+        if let Ok(note) = maybe_note {
+            self.editor.open_note(note)?;
+            return Ok(Message::Empty);
+        }
+
+        let notes = vault.get_notes_sorted();
+        let mut selections = vec![];
+
+        for note in notes {
+            selections.push(note.get_name());
+        }
+
+        let maybe_selection = FuzzySelect::with_theme(&ColorfulTheme::default())
+            .items(&selections.to_owned())
+            .default(0)
+            .with_initial_text(name.to_owned())
+            .interact_opt()?;
+
+        if let Some(selection) = maybe_selection {
+            let note_name = selections[selection].to_owned();
+            let note = vault.get_note_with_name(&note_name)?;
+            self.editor.open_note(note)?;
+
+            Ok(Message::Empty)
+        } else {
+            Err(anyhow!(Error::ItemNotFound(
+                ItemType::Note,
+                name.to_owned()
+            )))
+        }
     }
 
     pub fn create_folder(&mut self, name: &String) -> JotResult<Message> {
@@ -121,6 +169,19 @@ impl App {
     }
 
     pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
+        // display a dialog to confirm the action
+        #[cfg(not(test))]
+        let remove_item = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt(format!("Are you sure you want to remove {}?", name))
+            .interact()
+            .unwrap();
+        #[cfg(test)]
+        let remove_item = true;
+
+        if !remove_item {
+            return Ok(Message::Empty);
+        }
+
         match item_type {
             ItemType::Fd | ItemType::Folder => {
                 let vault = self.vaults.ref_current()?;
@@ -137,7 +198,7 @@ impl App {
             }
         };
 
-        return Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()));
+        Ok(Message::ItemRemoved(item_type.to_owned(), name.to_owned()))
     }
 
     pub fn rename_item(
@@ -191,16 +252,36 @@ impl App {
 
     pub fn set_config(
         &mut self,
-        config_type: &ConfigType,
-        value: &Option<String>,
+        config_type: Option<ConfigType>,
+        maybe_value: Option<String>,
     ) -> JotResult<Message> {
-        if let Some(value) = value {
-            self.config.set_config(config_type, value);
-            return Ok(Message::ConfigSet(config_type.to_owned(), value.to_owned()));
-        } else {
-            let value = self.config.get_config(config_type);
-            return Ok(Message::Config(config_type.to_owned(), value));
+        if config_type.is_none() {
+            return Ok(Message::Custom(format!(
+                "\nConfiguration\n---\n{}",
+                CONFIG.lock().unwrap()
+            )));
         }
+
+        let config_type = config_type.unwrap();
+        let value = match config_type {
+            ConfigType::Editor => maybe_value.unwrap(),
+            ConfigType::Conflict => maybe_value.unwrap(),
+            ConfigType::VaultColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Vault>())
+            }
+            ConfigType::FolderColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Folder>())
+            }
+            ConfigType::NoteColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Note>())
+            }
+        };
+
+        CONFIG
+            .lock()
+            .unwrap()
+            .set_config_value(&config_type, value.to_owned());
+        return Ok(Message::Config(config_type.to_owned(), value.to_owned()));
     }
 
     pub fn move_item(
@@ -289,22 +370,20 @@ impl App {
 
 impl App {
     pub fn new() -> JotResult<Self> {
-        let config = Config::load();
-        let editor_data = config.get_editor_data();
+        let editor_data = CONFIG.lock().unwrap().get_editor_data();
         Ok(App {
-            config,
             vaults: Vaults::load()?,
             editor: Editor::from_config(editor_data),
         })
     }
 
+    #[rustfmt::skip]
     pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
-        #[rustfmt::skip]
         match &command {
             Command::Vault { show_loc, name, location, } => self.vault(*show_loc, name, location),
             Command::Enter { name } => self.enter_vault(name),
             Command::Note { name } => self.create_note(name),
-            Command::Today { create_if_dne } => self.today(*create_if_dne),
+            Command::Today => self.today(),
             // Command::Alias { name, maybe_alias, remove_alias, } => { todo!() }
             Command::Open { name } => self.open_note(name),
             Command::Folder { name } => self.create_folder(name),
@@ -314,7 +393,7 @@ impl App {
             Command::Move { item_type, name, new_location, } => self.move_item(*item_type, name, new_location),
             Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(*item_type, name, vault_name),
             Command::List => self.list(),
-            Command::Config { config_type, value } => self.set_config(config_type, value),
+            Command::Config { config_type, value } => self.set_config(config_type.clone(), value.to_owned()),
             _ => Ok(Message::Empty),
         }
     }
@@ -430,11 +509,7 @@ mod test {
     #[test]
     fn create_and_edit_daily_note() {
         run! [
-            Fail(Command::Today { create_if_dne: false }), // does not exist
-            Pass(Command::Today { create_if_dne: true }),  // create
-            Fail(Command::Today { create_if_dne: true }),  // already exists
-            Pass(Command::Today { create_if_dne: false }), // open
-            Pass(Command::Today { create_if_dne: false })  // open again
+            Pass(Command::Today)  // create
         ];
     }
 

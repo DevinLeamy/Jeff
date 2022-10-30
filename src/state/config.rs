@@ -1,8 +1,11 @@
-use crate::{enums::ConfigType, fileio::FileIO};
-use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::path::PathBuf;
 
+use colored::Color;
+use serde::{Deserialize, Serialize};
+
 use crate::utils::application_config_path;
+use crate::{enums::ConfigType, fileio::FileIO};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EditorData {
@@ -21,6 +24,9 @@ impl Default for EditorData {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
+    vault_color: String,
+    folder_color: String,
+    note_color: String,
     editor_data: EditorData,
 }
 
@@ -28,7 +34,16 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             editor_data: EditorData::default(),
+            vault_color: "red".to_string(),
+            folder_color: "blue".to_string(),
+            note_color: "yellow".to_string(),
         }
+    }
+}
+
+impl Display for Config {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(fmt, "{}", toml::to_string_pretty(self).unwrap())
     }
 }
 
@@ -45,38 +60,38 @@ impl Config {
         self.editor_data.clone()
     }
 
-    pub fn set_config(&mut self, config_type: &ConfigType, value: &String) {
+    pub fn set_config_value(&mut self, config_type: &ConfigType, value: String) {
         match config_type {
-            ConfigType::Editor => self.set_editor(value.to_owned()),
-            ConfigType::Conflict => self.set_conflict(value.to_owned()),
+            ConfigType::Editor => self.editor_data.editor = value,
+            ConfigType::Conflict => self.editor_data.conflict = value == "true".to_string(),
+            ConfigType::VaultColor => self.vault_color = value,
+            ConfigType::FolderColor => self.folder_color = value,
+            ConfigType::NoteColor => self.note_color = value,
         }
-    }
 
-    pub fn get_config(&self, config_type: &ConfigType) -> String {
-        match config_type {
-            ConfigType::Editor => self.get_editor().to_owned(),
-            ConfigType::Conflict => match self.get_conflict() {
-                true => "true".to_string(),
-                false => "false".to_string(),
-            },
-        }
-    }
-
-    fn get_editor(&self) -> &String {
-        &self.editor_data.editor
-    }
-
-    fn set_editor(&mut self, editor: String) {
-        self.editor_data.editor = editor;
         self.store()
     }
 
-    fn get_conflict(&self) -> &bool {
-        &self.editor_data.conflict
+    #[allow(unused)]
+    pub fn get_config_value(&mut self, config_type: &ConfigType) -> String {
+        match config_type {
+            ConfigType::Editor => self.editor_data.editor.to_string(),
+            ConfigType::Conflict => self.editor_data.conflict.to_string(),
+            ConfigType::VaultColor => self.vault_color.to_string(),
+            ConfigType::FolderColor => self.folder_color.to_string(),
+            ConfigType::NoteColor => self.note_color.to_string(),
+        }
     }
 
-    fn set_conflict(&mut self, conflict: String) {
-        self.editor_data.conflict = conflict.parse().unwrap();
-        self.store()
+    pub fn get_vault_color(&self) -> Color {
+        Color::try_from(self.vault_color.to_owned()).unwrap_or(Color::Red)
+    }
+
+    pub fn get_note_color(&self) -> Color {
+        Color::try_from(self.note_color.to_owned()).unwrap_or(Color::Yellow)
+    }
+
+    pub fn get_folder_color(&self) -> Color {
+        Color::try_from(self.folder_color.to_owned()).unwrap_or(Color::Blue)
     }
 }

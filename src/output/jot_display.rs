@@ -1,5 +1,6 @@
-use crate::prelude::*;
 use colored::*;
+
+use crate::prelude::*;
 
 pub trait Colored {
     fn get_color() -> Color {
@@ -24,18 +25,18 @@ where
 
 impl Colored for Note {
     fn get_color() -> Color {
-        Color::Cyan
+        CONFIG.lock().unwrap().get_note_color()
     }
 }
 
 impl Colored for Folder {
     fn get_color() -> Color {
-        Color::Red
+        CONFIG.lock().unwrap().get_folder_color()
     }
 }
 
 impl Colored for Vault {
     fn get_color() -> Color {
-        Color::Magenta
+        CONFIG.lock().unwrap().get_vault_color()
     }
 }

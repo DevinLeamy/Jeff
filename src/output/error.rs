@@ -1,5 +1,8 @@
-use crate::enums::Item;
 use std::fmt::Display;
+
+use colored::*;
+
+use crate::enums::Item;
 
 pub type JotResult<T> = anyhow::Result<T>;
 
@@ -48,7 +51,7 @@ impl Display for Error {
                     name
                 ),
                 Error::ItemNotFound(item_type, name) =>
-                    format!("{} {} not found", item_type.fs_name(), name),
+                    format!("{} {} not found", item_type.fs_name(), name.blue()),
                 Error::VaultAlreadyExists(name) => format!("vault {} already exists", name),
                 Error::VaultNotFound(name) => format!("vault {} doesn't exist", name),
                 Error::NotInsideVault => "not inside a vault".to_string(),

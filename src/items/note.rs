@@ -11,6 +11,10 @@ pub struct Note {
 }
 
 impl Item for Note {
+    fn type_name() -> String {
+        "note".to_string()
+    }
+
     fn get_location(&self) -> &JotPath {
         &self.location
     }
