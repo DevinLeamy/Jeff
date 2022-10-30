@@ -110,9 +110,6 @@ impl App {
         /*
          * If the given name is a valid note, open it. Otherwise, fuzzysearch
          * for a note.
-         *
-         * TODO: make the fuzzysearch start with input text "name"
-         * TODO: make fuzzysearch have colored text
          */
         if let Ok(note) = maybe_note {
             self.editor.open_note(note)?;

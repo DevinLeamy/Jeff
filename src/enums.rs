@@ -56,7 +56,7 @@ impl VaultItem {
     }
 }
 
-#[derive(ValueEnum, Clone, Copy, Debug)]
+#[derive(ValueEnum, Clone, Debug)]
 pub enum ConfigType {
     Editor,
     Conflict,
