@@ -356,8 +356,8 @@ impl App {
         })
     }
 
+    #[rustfmt::skip]
     pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
-        #[rustfmt::skip]
         match &command {
             Command::Vault { show_loc, name, location, } => self.vault(*show_loc, name, location),
             Command::Enter { name } => self.enter_vault(name),

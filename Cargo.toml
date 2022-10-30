@@ -22,7 +22,3 @@ colored = "2"
 lazy_static = "1.4.0"
 # pending https://github.com/mitsuhiko/dialoguer/pull/226 
 dialoguer = { git="https://github.com/DevinLeamy/dialoguer.git", features = ["fuzzy-select"] }
-
-[features]
-default = ["stmt_expr_attributes"]
-stmt_expr_attributes = []
