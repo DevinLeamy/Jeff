@@ -55,36 +55,33 @@ impl App {
         return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
     }
 
-    pub fn today(&mut self, create_if_dne: bool) -> JotResult<Message> {
+    pub fn today(&mut self) -> JotResult<Message> {
         let daily_note_name = daily_note_name();
         let vault = self.vaults.ref_current()?;
-        let maybe_note = vault.get_note_with_name(&daily_note_name);
+        let mut message = Message::Empty;
+        let daily_note = match vault.get_note_with_name(&daily_note_name) {
+            Ok(note) => note,
+            Err(_) => {
+                // daily note does does not exist
+                #[cfg(not(test))]
+                let create_daily_note = Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt(format!("Create daily note {}?", daily_note_name))
+                    .interact()
+                    .unwrap();
+                #[cfg(test)]
+                let create_daily_note = true;
 
-        if maybe_note.is_err() && !create_if_dne {
-            return Err(anyhow!(
-                "Daily note does not exist, consider supplying the --create flag"
-            ));
-        }
-
-        /*
-         * Edit the daily note. If --create is supplied, create and edit the
-         * daily note.
-         */
-        let message;
-        let note = if create_if_dne {
-            /*
-             * We use vault.get_location() rather than vault.get_active_location() here because daily notes
-             * are created per-vault, not per-folder. Currently, they are always top-level.
-             */
-            let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
-            message = Message::ItemCreated(ItemType::Nt, daily_note_name);
-            Note::create(note_path)?
-        } else {
-            message = Message::Empty;
-            maybe_note.unwrap()
+                if create_daily_note {
+                    let note_path = Note::generate_abs_path(vault.get_location(), &daily_note_name);
+                    message = Message::ItemCreated(ItemType::Nt, daily_note_name);
+                    Note::create(note_path)?
+                } else {
+                    return Err(anyhow!("Daily note does not exist"));
+                }
+            }
         };
 
-        self.editor.open_note(note)?;
+        self.editor.open_note(daily_note)?;
 
         Ok(message)
     }
@@ -365,7 +362,7 @@ impl App {
             Command::Vault { show_loc, name, location, } => self.vault(*show_loc, name, location),
             Command::Enter { name } => self.enter_vault(name),
             Command::Note { name } => self.create_note(name),
-            Command::Today { create_if_dne } => self.today(*create_if_dne),
+            Command::Today => self.today(),
             // Command::Alias { name, maybe_alias, remove_alias, } => { todo!() }
             Command::Open { name } => self.open_note(name),
             Command::Folder { name } => self.create_folder(name),
@@ -491,11 +488,7 @@ mod test {
     #[test]
     fn create_and_edit_daily_note() {
         run! [
-            Fail(Command::Today { create_if_dne: false }), // does not exist
-            Pass(Command::Today { create_if_dne: true }),  // create
-            Fail(Command::Today { create_if_dne: true }),  // already exists
-            Pass(Command::Today { create_if_dne: false }), // open
-            Pass(Command::Today { create_if_dne: false })  // open again
+            Pass(Command::Today)  // create
         ];
     }
 

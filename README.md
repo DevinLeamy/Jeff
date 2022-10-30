@@ -99,17 +99,13 @@ $ jt folder newfolder
 
 #### ***Create and edit daily note in the current vault***
 
-Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note and `jt today --create` will create the daily note, if none exists.
-
-```bash
-$ jt today --create
-```
+Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note. If no daily note exists, 
+you will be prompted to create one.
 
 ```bash
 $ jt today 
+# Create daily note YYYY-MM-DD? (y/n)
 ```
-
-
 
 
 
