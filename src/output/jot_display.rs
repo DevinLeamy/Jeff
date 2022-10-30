@@ -1,7 +1,4 @@
-use std::borrow::Cow;
-
 use colored::*;
-use skim::prelude::*;
 
 use crate::prelude::*;
 
@@ -41,15 +38,5 @@ impl Colored for Folder {
 impl Colored for Vault {
     fn get_color() -> Color {
         Color::Magenta
-    }
-}
-
-impl SkimItem for Note {
-    fn text(&self) -> Cow<str> {
-        Cow::from(self.get_name())
-    }
-
-    fn preview(&self, _context: PreviewContext) -> ItemPreview {
-        ItemPreview::AnsiText(format!("{}\n<PREVIEW>", self.to_display_string()))
     }
 }
