@@ -1,19 +1,19 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+use crate::prelude::*;
 use crate::App;
+
 use std::sync::Mutex;
 use std::{panic::UnwindSafe, path::PathBuf};
 
 static VAULT_COUNTER: Mutex<i32> = Mutex::new(0);
 
+#[rustfmt::skip]
 lazy_static! {
-    pub static ref TEST_HOME: PathBuf =
-        PathBuf::from(format!("{}/tests", env!("CARGO_MANIFEST_DIR")));
-    pub static ref TEST_VAULTS: PathBuf =
-        PathBuf::from(format!("{}/tests/vaults", env!("CARGO_MANIFEST_DIR")));
-    pub static ref TEST_CONFIG: PathBuf =
-        PathBuf::from(format!("{}/tests/config", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_HOME: PathBuf = PathBuf::from(format!("{}/tests", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_VAULTS: PathBuf = PathBuf::from(format!("{}/tests/vaults", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_CONFIG: PathBuf = PathBuf::from(format!("{}/tests/config", env!("CARGO_MANIFEST_DIR")));
 }
 pub const INITIAL_VAULT: &'static str = "vault_1";
 
@@ -56,6 +56,8 @@ pub enum Test {
 }
 
 use colored::Colorize;
+use dialoguer::theme::ColorfulTheme;
+use dialoguer::FuzzySelect;
 pub use Test::*;
 
 pub fn execute_command(test: Test) {
@@ -84,4 +86,38 @@ pub fn execute_commands(commands: Vec<Test>) {
     for test in commands {
         execute_command(test);
     }
+}
+
+pub fn display_item_color_select<T: Item + Colored>() -> String {
+    let prompt = format!("Select a {} color.", T::type_name().color(T::get_color()));
+    display_color_select(prompt)
+}
+
+pub fn display_color_select(prompt: String) -> String {
+    let colors = [
+        "black",
+        "red",
+        "green",
+        "yellow",
+        "blue",
+        "magenta",
+        "purple",
+        "cyan",
+        "white",
+        "bright black",
+        "bright red",
+        "bright green",
+        "bright yellow",
+        "bright blue",
+        "bright magenta",
+        "bright cyan",
+        "bright white",
+    ];
+    let selection = FuzzySelect::with_theme(&ColorfulTheme::default())
+        .items(&colors)
+        .default(0)
+        .interact()
+        .unwrap();
+
+    colors[selection].to_string()
 }

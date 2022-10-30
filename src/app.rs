@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 use anyhow::anyhow;
 
@@ -7,8 +8,13 @@ use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
 
 use crate::{enums::ConfigType, prelude::*};
 
+lazy_static! {
+    // Mutex is used to allow for mutable access of global state.
+    // CONFIG should remain the ONLY mutable global struct.
+    pub static ref CONFIG: Mutex<Config> = Mutex::new(Config::load());
+}
+
 pub struct App {
-    config: Config,
     vaults: Vaults,
     editor: Editor,
 }
@@ -123,7 +129,7 @@ impl App {
         let maybe_selection = FuzzySelect::with_theme(&ColorfulTheme::default())
             .items(&selections.to_owned())
             .default(0)
-            .search_term(name.to_owned())
+            .with_initial_text(name.to_owned())
             .interact_opt()?;
 
         if let Some(selection) = maybe_selection {
@@ -249,16 +255,36 @@ impl App {
 
     pub fn set_config(
         &mut self,
-        config_type: &ConfigType,
-        value: &Option<String>,
+        config_type: Option<ConfigType>,
+        maybe_value: Option<String>,
     ) -> JotResult<Message> {
-        if let Some(value) = value {
-            self.config.set_config(config_type, value);
-            return Ok(Message::ConfigSet(config_type.to_owned(), value.to_owned()));
-        } else {
-            let value = self.config.get_config(config_type);
-            return Ok(Message::Config(config_type.to_owned(), value));
+        if config_type.is_none() {
+            return Ok(Message::Custom(format!(
+                "\nConfiguration\n---\n{}",
+                CONFIG.lock().unwrap()
+            )));
         }
+
+        let config_type = config_type.unwrap();
+        let value = match config_type {
+            ConfigType::Editor => maybe_value.unwrap(),
+            ConfigType::Conflict => maybe_value.unwrap(),
+            ConfigType::VaultColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Vault>())
+            }
+            ConfigType::FolderColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Folder>())
+            }
+            ConfigType::NoteColor => {
+                maybe_value.unwrap_or_else(|| display_item_color_select::<Note>())
+            }
+        };
+
+        CONFIG
+            .lock()
+            .unwrap()
+            .set_config_value(&config_type, value.to_owned());
+        return Ok(Message::Config(config_type.to_owned(), value.to_owned()));
     }
 
     pub fn move_item(
@@ -347,10 +373,8 @@ impl App {
 
 impl App {
     pub fn new() -> JotResult<Self> {
-        let config = Config::load();
-        let editor_data = config.get_editor_data();
+        let editor_data = CONFIG.lock().unwrap().get_editor_data();
         Ok(App {
-            config,
             vaults: Vaults::load()?,
             editor: Editor::from_config(editor_data),
         })
@@ -372,7 +396,7 @@ impl App {
             Command::Move { item_type, name, new_location, } => self.move_item(*item_type, name, new_location),
             Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(*item_type, name, vault_name),
             Command::List => self.list(),
-            Command::Config { config_type, value } => self.set_config(config_type, value),
+            Command::Config { config_type, value } => self.set_config(config_type.clone(), value.to_owned()),
             _ => Ok(Message::Empty),
         }
     }

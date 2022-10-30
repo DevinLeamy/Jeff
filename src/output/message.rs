@@ -15,7 +15,7 @@ pub enum Message {
     ItemVMoved(VaultItem, String, String),
     FolderChanged,
     Config(ConfigType, String),
-    ConfigSet(ConfigType, String),
+    Custom(String),
     Empty,
 }
 
@@ -51,10 +51,8 @@ impl Display for Message {
                     vault_name
                 ),
                 Message::FolderChanged => "changed folder".to_string(),
-                Message::Config(config_type, value) =>
-                    format!("{}: \x1b[0;34m{}\x1b[0m", config_type.to_str(), value),
-                Message::ConfigSet(config_type, value) => format!(
-                    "set \x1b[0;34m{}\x1b[0m to \x1b[0;34m{}\x1b[0m",
+                Message::Config(config_type, value) => format!(
+                    "Configuration option [\x1b[0;34m{}\x1b[0m] is set to {}",
                     config_type.to_str(),
                     value
                 ),
@@ -70,6 +68,7 @@ impl Display for Message {
                         note_name, alias_name
                     )
                 }
+                Message::Custom(content) => content.to_string(),
                 Message::Empty => "".to_string(),
             })
         )

@@ -1,4 +1,5 @@
 pub use crate::{
+    app::CONFIG,
     editor::*,
     enums::{Item as ItemType, VaultItem as VaultItemType},
     fileio::*,

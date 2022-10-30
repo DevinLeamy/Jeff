@@ -29,6 +29,10 @@ impl Collection for Vault {
 }
 
 impl Item for Vault {
+    fn type_name() -> String {
+        "vault".to_string()
+    }
+
     fn get_location(&self) -> &JotPath {
         &self.path
     }

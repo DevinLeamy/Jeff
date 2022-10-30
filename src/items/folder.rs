@@ -25,6 +25,10 @@ impl Collection for Folder {
 }
 
 impl Item for Folder {
+    fn type_name() -> String {
+        "folder".to_string()
+    }
+
     fn get_location(&self) -> &JotPath {
         &self.location
     }

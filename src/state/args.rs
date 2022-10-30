@@ -180,12 +180,14 @@ pub enum Command {
     #[clap(alias = "ls")]
     List,
     /// display or set a config item
-    #[clap(override_usage("jt config <config type>\n    jt config <config type> [config value]"))]
+    #[clap(override_usage(
+        "jt config\njt config [config type]\n    jt config [config type] [config value]"
+    ))]
     #[clap(alias = "cf")]
     Config {
         /// name of config item to display or set
         #[clap(value_enum, value_parser, name = "config type")]
-        config_type: ConfigType,
+        config_type: Option<ConfigType>,
         /// pass a value if config needs to be updated
         #[clap(value_parser, name = "config value")]
         value: Option<String>,

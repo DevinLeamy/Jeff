@@ -200,7 +200,7 @@ dependencies = [
 [[package]]
 name = "dialoguer"
 version = "0.10.2"
-source = "git+https://github.com/DevinLeamy/dialoguer.git#39cc3442b400f64fa22af1a526748d700d15c591"
+source = "git+https://github.com/mitsuhiko/dialoguer.git#778d2e1f0655de22885e078e7386df2b4f70ec6d"
 dependencies = [
  "console",
  "fuzzy-matcher",

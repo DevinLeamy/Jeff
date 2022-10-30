@@ -20,5 +20,4 @@ chrono = "0.4.22"
 anyhow = "1.0"
 colored = "2"
 lazy_static = "1.4.0"
-# pending https://github.com/mitsuhiko/dialoguer/pull/226 
-dialoguer = { git="https://github.com/DevinLeamy/dialoguer.git", features = ["fuzzy-select"] }
+dialoguer = { git="https://github.com/mitsuhiko/dialoguer.git", features = ["fuzzy-select"] }
