@@ -51,8 +51,6 @@ pub trait FileIO: Debug + Default + Serialize + DeserializeOwned {
 
         let data = Self::default();
 
-        println!("{:?}", data);
-
         <Self as FileIO>::write_file(&mut file, &data);
 
         data
