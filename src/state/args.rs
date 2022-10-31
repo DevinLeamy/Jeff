@@ -89,6 +89,14 @@ pub enum Command {
         #[clap(value_parser, name = "note name")]
         name: String,
     },
+    /// create or edit a template
+    #[clap(override_usage("jt template <template-name>"))]
+    #[clap(alias = "tp")]
+    Template {
+        /// name of the template
+        #[clap(value_parser, name = "template name")]
+        name: String,
+    },
     /// creates an alias for a note
     // #[clap(override_usage(
     //     "jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"

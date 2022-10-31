@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 use anyhow::anyhow;
 
+use colored::Colorize;
 #[cfg(not(test))]
 use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
 
@@ -17,6 +18,7 @@ lazy_static! {
 pub struct App {
     vaults: Vaults,
     editor: Editor,
+    templates: Folder,
 }
 
 impl App {
@@ -102,6 +104,32 @@ impl App {
         Ok(Message::Empty)
     }
 
+    pub fn open_template(&mut self, name: &String) -> JotResult<Message> {
+        let templates = self.templates.notes();
+        let maybe_template = item_with_name::<Note>(&templates, name);
+
+        if let Some(template) = maybe_template {
+            self.editor.open_note(template.to_owned())?;
+
+            return Ok(Message::Empty);
+        }
+
+        let create_template = confirmation_prompt(format!(
+            "Would you like to create a template [{}]",
+            name.blue()
+        ));
+
+        if create_template {
+            let template_path = Note::generate_abs_path(self.templates.get_location(), name);
+            let template = Note::create(template_path)?;
+            self.editor.open_note(template.to_owned())?;
+
+            Ok(Message::TemplateCreated(name.to_owned()))
+        } else {
+            Ok(Message::Empty)
+        }
+    }
+
     #[cfg(not(test))]
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
         let vault = self.vaults.ref_current()?;
@@ -175,10 +203,7 @@ impl App {
     pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
         // display a dialog to confirm the action
         #[cfg(not(test))]
-        let remove_item = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt(format!("Are you sure you want to remove {}?", name))
-            .interact()
-            .unwrap();
+        let remove_item = confirmation_prompt(format!("Are you sure you want to remove {}?", name));
         #[cfg(test)]
         let remove_item = true;
 
@@ -375,9 +400,16 @@ impl App {
 impl App {
     pub fn new() -> JotResult<Self> {
         let editor_data = CONFIG.lock().unwrap().get_editor_data();
+        let templates_path = application_templates_path();
+
+        if !templates_path.is_dir() {
+            std::fs::create_dir(&templates_path)?
+        }
+
         Ok(App {
             vaults: Vaults::load()?,
             editor: Editor::from_config(editor_data),
+            templates: Folder::load(templates_path)?,
         })
     }
 
@@ -398,6 +430,7 @@ impl App {
             Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(*item_type, name, vault_name),
             Command::List => self.list(),
             Command::Config { config_type, value } => self.set_config(config_type.clone(), value.to_owned()),
+            Command::Template { name } => self.open_template(name),
             _ => Ok(Message::Empty),
         }
     }

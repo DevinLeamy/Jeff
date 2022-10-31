@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use chrono;
+use dialoguer::{theme::ColorfulTheme, Confirm};
 use directories::ProjectDirs;
 
 use crate::prelude::*;
@@ -73,6 +74,17 @@ pub fn application_data_path() -> PathBuf {
     }
 }
 
+pub fn application_templates_path() -> PathBuf {
+    if cfg!(not(test)) {
+        let template_dir = ProjectDirs::from("com", "", "jot").unwrap();
+        let mut template_dir_path = template_dir.data_dir().to_path_buf();
+        template_dir_path.push("templates");
+        template_dir_path
+    } else {
+        (*TEST_TEMPLATES).clone()
+    }
+}
+
 pub fn create_file<P: AsRef<Path>>(path: P) -> JotResult<()> {
     std::fs::File::options()
         .create_new(true)
@@ -80,4 +92,18 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> JotResult<()> {
         .open(path)?;
 
     Ok(())
+}
+
+pub fn item_with_name<'a, I: Item>(items: &'a Vec<I>, name: &String) -> Option<&'a I> {
+    items.iter().find(|item| &item.get_name() == name)
+}
+
+/// Displays a confirmation prompt with the given text.
+/// Returns the outcome, "true" if the action was confirmed
+/// and "false" otherwise.
+pub fn confirmation_prompt(prompt: String) -> bool {
+    Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt(prompt)
+        .interact()
+        .unwrap()
 }

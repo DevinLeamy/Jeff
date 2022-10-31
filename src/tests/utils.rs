@@ -14,6 +14,7 @@ lazy_static! {
     pub static ref TEST_HOME: PathBuf = PathBuf::from(format!("{}/tests", env!("CARGO_MANIFEST_DIR")));
     pub static ref TEST_VAULTS: PathBuf = PathBuf::from(format!("{}/tests/vaults", env!("CARGO_MANIFEST_DIR")));
     pub static ref TEST_CONFIG: PathBuf = PathBuf::from(format!("{}/tests/config", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_TEMPLATES: PathBuf = PathBuf::from(format!("{}/tests/templates", env!("CARGO_MANIFEST_DIR")));
 }
 pub const INITIAL_VAULT: &'static str = "vault_1";
 
