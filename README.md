@@ -1,8 +1,7 @@
-# *jot*
+# *Jeff*
 
 <a href="LICENSE"><img alt="Release" src="https://img.shields.io/badge/license-MIT-green"></a>
-<a href="https://github.com/araekiel/jot/releases/tag/v0.1.1"><img alt="Release" src="https://img.shields.io/badge/release-v0.1.1-red"></a>
-<a href="https://crates.io/crates/jt"><img alt="Cargo" src="https://img.shields.io/badge/cargo-jt-blue"></a>
+<!-- <a href=""><img alt="Cargo" src="https://img.shields.io/badge/cargo-jt-blue"></a> -->
 
 <p>
   <a href="#installation">Installation</a> •
@@ -16,12 +15,8 @@
   <a href="#license">License</a>
 </p>
 
-***Jot*** is a feature-stripped version of Obsidian focused on rapid note management through the terminal.
-<br>
-It uses the same format of storage as Obsidian, i.e. markdown files for notes, and local folders for vaults (and sub-folders).
-<br>
-Commands that encompass all basic needs are included. Each command has an alias (two letter abbreviation) to further increase rapidity. 
-
+***Jeff*** is a command line note management app, similar to Obsidian. It's built off of [jot](https://crates.io/crates/jt), but with more features, a different design, and
+with open-source maintainence in mind. Contributions are welcome!
 <br>
 <img width="745" alt="image" src="https://user-images.githubusercontent.com/45083086/198465726-104db353-a6ef-4daf-88c3-30e9b6298f07.png">
 
