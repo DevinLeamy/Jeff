@@ -12,11 +12,11 @@ pub struct Folder {
 }
 
 impl Collection for Folder {
-    fn get_notes(&self) -> Vec<Note> {
+    fn notes(&self) -> Vec<Note> {
         self.notes.clone()
     }
 
-    fn get_folders(&self) -> Vec<Folder> {
+    fn folders(&self) -> Vec<Folder> {
         self.folders
             .iter()
             .map(|folder_box| *folder_box.clone())
@@ -24,11 +24,69 @@ impl Collection for Folder {
     }
 }
 
-impl Item for Folder {
-    fn type_name() -> String {
+impl Folder {
+    pub fn type_name() -> String {
         "folder".to_string()
     }
 
+    pub fn generate_abs_path(parent_dir: &PathBuf, folder_name: &String) -> PathBuf {
+        join_paths(vec![parent_dir.to_str().unwrap(), folder_name])
+    }
+    /**
+     * Creates a new folder at the given location.
+     */
+    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
+        println!("{:?}", absolute_path);
+        if !Folder::is_valid_path(&absolute_path) {
+            return Err(anyhow!("Invalid folder path"));
+        }
+
+        let folder = Folder {
+            location: absolute_path.to_owned().into(),
+            folders: vec![],
+            notes: vec![],
+        };
+
+        // TODO: enforce that the folder is only one nesting level deeper
+        // than the current note.
+        create_dir(absolute_path)?;
+
+        Ok(folder)
+    }
+    /**
+     * Initializes an existing folder and loads it's contents
+     * into notes and folders.
+     */
+    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
+        if !Folder::is_valid_path(&absolute_path) {
+            return Err(anyhow!("Invalid folder path"));
+        }
+
+        let mut folder = Folder {
+            location: absolute_path.into(),
+            folders: vec![],
+            notes: vec![],
+        };
+
+        folder.load_contents()?;
+
+        Ok(folder)
+    }
+
+    /**
+     * Check if a given location points to a valid
+     * `jot` [Folder]
+     */
+    pub fn is_valid_path(location: &PathBuf) -> bool {
+        location.file_name().unwrap() != ".jot" && !location.is_file()
+    }
+
+    pub fn as_collection(&self) -> Box<dyn Collection> {
+        Box::new(self.clone())
+    }
+}
+
+impl Item for Folder {
     fn get_location(&self) -> &JotPath {
         &self.location
     }
@@ -61,58 +119,6 @@ impl Item for Folder {
         remove_dir_all(&self.location.as_path())?;
 
         Ok(())
-    }
-
-    fn generate_abs_path(parent_dir: &PathBuf, folder_name: &String) -> PathBuf {
-        join_paths(vec![parent_dir.to_str().unwrap(), folder_name])
-    }
-    /**
-     * Creates a new folder at the given location.
-     */
-    fn create(absolute_path: PathBuf) -> JotResult<Self> {
-        println!("{:?}", absolute_path);
-        if !Folder::is_valid_path(&absolute_path) {
-            return Err(anyhow!("Invalid folder path"));
-        }
-
-        let folder = Folder {
-            location: absolute_path.to_owned().into(),
-            folders: vec![],
-            notes: vec![],
-        };
-
-        // TODO: enforce that the folder is only one nesting level deeper
-        // than the current note.
-        create_dir(absolute_path)?;
-
-        Ok(folder)
-    }
-    /**
-     * Initializes an existing folder and loads it's contents
-     * into notes and folders.
-     */
-    fn load(absolute_path: PathBuf) -> JotResult<Self> {
-        if !Folder::is_valid_path(&absolute_path) {
-            return Err(anyhow!("Invalid folder path"));
-        }
-
-        let mut folder = Folder {
-            location: absolute_path.into(),
-            folders: vec![],
-            notes: vec![],
-        };
-
-        folder.load_contents()?;
-
-        Ok(folder)
-    }
-
-    /**
-     * Check if a given location points to a valid
-     * `jot` [Folder]
-     */
-    fn is_valid_path(location: &PathBuf) -> bool {
-        location.file_name().unwrap() != ".jot" && !location.is_file()
     }
 }
 

@@ -105,21 +105,22 @@ impl App {
     #[cfg(not(test))]
     pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
         let vault = self.vaults.ref_current()?;
-        let maybe_note = vault.get_note_from_active_folder(name);
+        let active_collection: Box<dyn Collection> = vault.active_collection()?;
+        let notes = active_collection.notes_sorted();
+        let maybe_note = notes.iter().find(|note| &note.get_name() == name);
 
         /*
          * If the given name is a valid note, open it. Otherwise, fuzzysearch
          * for a note.
          */
-        if let Ok(note) = maybe_note {
-            self.editor.open_note(note)?;
+        if let Some(note) = maybe_note {
+            self.editor.open_note(note.clone())?;
             return Ok(Message::Empty);
         }
 
-        let notes = vault.get_notes_sorted();
         let mut selections = vec![];
 
-        for note in notes {
+        for note in &notes {
             selections.push(note.get_name());
         }
 
@@ -131,8 +132,11 @@ impl App {
 
         if let Some(selection) = maybe_selection {
             let note_name = selections[selection].to_owned();
-            let note = vault.get_note_with_name(&note_name)?;
-            self.editor.open_note(note)?;
+            let note = notes
+                .iter()
+                .find(|note| note.get_name() == note_name)
+                .unwrap();
+            self.editor.open_note(note.to_owned())?;
 
             Ok(Message::Empty)
         } else {

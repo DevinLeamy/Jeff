@@ -19,61 +19,28 @@ pub struct Vault {
 }
 
 impl Collection for Vault {
-    fn get_notes(&self) -> Vec<Note> {
+    fn notes(&self) -> Vec<Note> {
         self.notes.clone()
     }
 
-    fn get_folders(&self) -> Vec<Folder> {
+    fn folders(&self) -> Vec<Folder> {
         self.folders.clone()
     }
 }
 
-impl Item for Vault {
-    fn type_name() -> String {
+impl Vault {
+    pub fn type_name() -> String {
         "vault".to_string()
     }
 
-    fn get_location(&self) -> &JotPath {
-        &self.path
-    }
-
-    fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {
-        assert!(Vault::is_valid_path(&new_absolute_path));
-        rename(&self.path.as_path(), &new_absolute_path)?;
-        self.path = new_absolute_path.to_owned().into();
-        self.vault_store.set_absolute_path(new_absolute_path);
-
-        Ok(())
-    }
-
-    fn rename(&mut self, new_name: String) -> JotResult<()> {
-        let vault_parent_dir = self.path.parent();
-        let new_absolute_path = get_absolute_path(&vault_parent_dir.to_path_buf(), &new_name);
-
-        assert!(Vault::is_valid_path(&new_absolute_path));
-        rename(&self.path.as_path(), &new_absolute_path)?;
-        self.path = new_absolute_path.to_owned().into();
-        self.vault_store.set_absolute_path(new_absolute_path);
-
-        Ok(())
-    }
-
-    fn delete(&self) -> JotResult<()> {
-        // TODO: make sure the user is prompted before executing
-        // NOTE: this could potentially delete a lot of information!
-        remove_dir_all(&self.path.as_path())?;
-
-        Ok(())
-    }
-
-    fn generate_abs_path(parent_dir: &PathBuf, vault_name: &String) -> PathBuf {
+    pub fn generate_abs_path(parent_dir: &PathBuf, vault_name: &String) -> PathBuf {
         join_paths(vec![parent_dir.to_str().unwrap(), vault_name])
     }
 
     /**
      * Creates a new new at the given location.
      */
-    fn create(absolute_path: PathBuf) -> JotResult<Self> {
+    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
         let path: JotPath = absolute_path.to_owned().into();
         if path.exists() {
             return Err(anyhow!(VaultAlreadyExists(
@@ -106,7 +73,7 @@ impl Item for Vault {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    fn load(absolute_path: PathBuf) -> JotResult<Self> {
+    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
         let path: JotPath = absolute_path.into();
 
         let mut new_vault = Vault {
@@ -133,7 +100,55 @@ impl Item for Vault {
     }
 }
 
+impl Item for Vault {
+    fn get_location(&self) -> &JotPath {
+        &self.path
+    }
+
+    fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {
+        assert!(Vault::is_valid_path(&new_absolute_path));
+        rename(&self.path.as_path(), &new_absolute_path)?;
+        self.path = new_absolute_path.to_owned().into();
+        self.vault_store.set_absolute_path(new_absolute_path);
+
+        Ok(())
+    }
+
+    fn rename(&mut self, new_name: String) -> JotResult<()> {
+        let vault_parent_dir = self.path.parent();
+        let new_absolute_path = get_absolute_path(&vault_parent_dir.to_path_buf(), &new_name);
+
+        assert!(Vault::is_valid_path(&new_absolute_path));
+        rename(&self.path.as_path(), &new_absolute_path)?;
+        self.path = new_absolute_path.to_owned().into();
+        self.vault_store.set_absolute_path(new_absolute_path);
+
+        Ok(())
+    }
+
+    fn delete(&self) -> JotResult<()> {
+        // TODO: make sure the user is prompted before executing
+        // NOTE: this could potentially delete a lot of information!
+        remove_dir_all(&self.path.as_path())?;
+
+        Ok(())
+    }
+}
+
 impl Vault {
+    pub fn as_collection(&self) -> Box<dyn Collection> {
+        Box::new(self.clone())
+    }
+
+    pub fn active_collection(&self) -> JotResult<Box<dyn Collection>> {
+        let active_folder = self.get_active_folder();
+
+        if let Ok(Some(folder)) = active_folder {
+            Ok(folder.as_collection())
+        } else {
+            Ok(self.as_collection())
+        }
+    }
     pub fn get_note_from_active_folder(&self, name: &String) -> JotResult<Note> {
         if let Ok(Some(active_folder)) = self.get_active_folder() {
             Ok(active_folder.get_note_with_name(name)?)
