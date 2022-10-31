@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use chrono;
+#[cfg(not(test))]
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use directories::ProjectDirs;
 
