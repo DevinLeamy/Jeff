@@ -42,4 +42,14 @@ impl Editor {
 
         Ok(())
     }
+
+    /// Copy the contents of one note into another note
+    pub fn copy_note(from_note: &Note, to_note: &Note) -> JotResult<()> {
+        let _ = std::fs::copy(
+            from_note.get_location().to_path_buf(),
+            to_note.get_location().to_path_buf(),
+        )?;
+
+        Ok(())
+    }
 }

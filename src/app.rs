@@ -46,9 +46,20 @@ impl App {
         return Ok(Message::VaultEntered(name.to_owned()));
     }
 
-    pub fn create_note(&mut self, name: &String) -> JotResult<Message> {
+    pub fn create_note(
+        &mut self,
+        name: &String,
+        from_template: bool,
+        template_name: &Option<String>,
+    ) -> JotResult<Message> {
         let vault = self.vaults.ref_current()?;
         let maybe_note = vault.get_note_with_name(name);
+        let templates = self.templates.notes();
+
+        if from_template && template_name.is_none() {
+            return Err(anyhow!("Must specify template name"));
+        }
+
         if let Ok(note) = maybe_note {
             return Err(anyhow!(
                 "Note with name [{}] already exists",
@@ -58,7 +69,23 @@ impl App {
 
         let note_path = Note::generate_abs_path(&vault.get_active_location(), name);
 
-        Note::create(note_path)?;
+        if from_template {
+            let template_name = template_name.to_owned().unwrap();
+            let maybe_template = item_with_name::<Note>(&templates, &template_name);
+
+            if maybe_template.is_none() {
+                return Err(anyhow!(
+                    "Template [{}] does not exist",
+                    template_name.blue()
+                ));
+            }
+
+            let new_note = Note::create(note_path)?;
+
+            Editor::copy_note(maybe_template.unwrap(), &new_note)?;
+        } else {
+            Note::create(note_path)?;
+        }
 
         return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
     }
@@ -104,9 +131,16 @@ impl App {
         Ok(Message::Empty)
     }
 
-    pub fn open_template(&mut self, name: &String) -> JotResult<Message> {
+    pub fn template(&mut self, name: &Option<String>) -> JotResult<Message> {
+        if name.is_none() {
+            self.templates.list();
+            return Ok(Message::Empty);
+        }
+
+        let name = name.to_owned().unwrap();
+
         let templates = self.templates.notes();
-        let maybe_template = item_with_name::<Note>(&templates, name);
+        let maybe_template = item_with_name::<Note>(&templates, &name);
 
         if let Some(template) = maybe_template {
             self.editor.open_note(template.to_owned())?;
@@ -120,7 +154,7 @@ impl App {
         ));
 
         if create_template {
-            let template_path = Note::generate_abs_path(self.templates.get_location(), name);
+            let template_path = Note::generate_abs_path(self.templates.get_location(), &name);
             let template = Note::create(template_path)?;
             self.editor.open_note(template.to_owned())?;
 
@@ -418,7 +452,7 @@ impl App {
         match &command {
             Command::Vault { show_loc, name, location, } => self.vault(*show_loc, name, location),
             Command::Enter { name } => self.enter_vault(name),
-            Command::Note { name } => self.create_note(name),
+            Command::Note { name, from_template, template_name} => self.create_note(name, *from_template, template_name),
             Command::Today => self.today(),
             // Command::Alias { name, maybe_alias, remove_alias, } => { todo!() }
             Command::Open { name } => self.open_note(name),
@@ -430,7 +464,7 @@ impl App {
             Command::Vmove { item_type, name, vault_name, } => self.move_item_to_new_vault(*item_type, name, vault_name),
             Command::List => self.list(),
             Command::Config { config_type, value } => self.set_config(config_type.clone(), value.to_owned()),
-            Command::Template { name } => self.open_template(name),
+            Command::Template { name } => self.template(name),
             _ => Ok(Message::Empty),
         }
     }
@@ -459,7 +493,7 @@ mod test {
     #[test]
     fn note_test() {
         run![
-            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Note { name: "test_note".to_string(), from_template: false, template_name: None }),
             Pass(Command::Open { name: "test_note".to_string() }),
             Pass(Command::Remove { item_type: ItemType::Nt, name: "test_note".to_string() }),
             Fail(Command::Open { name: "test_note".to_string() }),
@@ -480,7 +514,7 @@ mod test {
     fn move_note_between_vaults() {
         run![
             Pass(Command::Vault { show_loc: false, name: Some("vault_2".to_string()), location: Some(test_vaults()) }),
-            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Note { name: "test_note".to_string(), from_template: false, template_name: None }),
             Pass(Command::Open { name: "test_note".to_string() }),
             Pass(Command::Vmove { item_type: VaultItemType::Nt, name: "test_note".to_string(), vault_name: "vault_2".to_string() }),
             Fail(Command::Open { name: "test_note".to_string() }), // Err: open test_note from vault_1
@@ -507,7 +541,7 @@ mod test {
         run![
             Pass(Command::Folder { name: "folder_1".to_string() }),
             Pass(Command::Folder { name: "folder_2".to_string() }),
-            Pass(Command::Note { name: "test_note".to_string() }),
+            Pass(Command::Note { name: "test_note".to_string(), from_template: false, template_name: None }),
             Pass(Command::Move { item_type: ItemType::Nt, name: "test_note".to_string(), new_location: PathBuf::from("folder_1") }),
             Fail(Command::Open { name: "test_note".to_string() }), // Err: test_note was moved to folder_1 
             Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
@@ -536,7 +570,7 @@ mod test {
         ];
         run! [
             Fail(Command::Remove { item_type: ItemType::Note, name: "note_1".to_string() }),
-            Pass(Command::Note { name: "note_1".to_string() }),
+            Pass(Command::Note { name: "note_1".to_string(), from_template: false, template_name: None }),
             Pass(Command::Open { name: "note_1".to_string() }),
             Pass(Command::Remove { item_type: ItemType::Note, name: "note_1".to_string() }),
             Fail(Command::Open { name: "note_1".to_string() })
@@ -555,7 +589,7 @@ mod test {
         run! [
             Pass(Command::Folder { name: "folder_1".to_string() }),
             Pass(Command::Chdir { path: PathBuf::from("folder_1") }),
-            Pass(Command::Note { name: "note_1".to_string() }),
+            Pass(Command::Note { name: "note_1".to_string(), from_template: false, template_name: None }),
             Pass(Command::Open { name: "note_1".to_string() }),
             Pass(Command::Chdir { path: PathBuf::from("..") }),
             Fail(Command::Open { name: "note_1".to_string() }), // cannot open note in ./folder_1 from ./
