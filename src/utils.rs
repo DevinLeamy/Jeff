@@ -101,9 +101,15 @@ pub fn item_with_name<'a, I: Item>(items: &'a Vec<I>, name: &String) -> Option<&
 /// Displays a confirmation prompt with the given text.
 /// Returns the outcome, "true" if the action was confirmed
 /// and "false" otherwise.
+#[cfg(not(test))]
 pub fn confirmation_prompt(prompt: String) -> bool {
     Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt(prompt)
         .interact()
         .unwrap()
+}
+
+#[cfg(test)]
+pub fn confirmation_prompt(_prompt: String) -> bool {
+    true
 }

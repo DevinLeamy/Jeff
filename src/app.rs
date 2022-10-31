@@ -597,4 +597,24 @@ mod test {
             Pass(Command::Remove { item_type: ItemType::Nt, name: "note_1".to_string() })
         ];
     }
+
+    #[test]
+    fn create_and_edit_and_list_templates() {
+        run! [
+            Pass(Command::Template { name: Some("template".to_string()) }), // create
+            Pass(Command::Template { name: Some("template".to_string()) }), // edit
+            Pass(Command::Template { name: None } ) // list 
+        ];
+    }
+
+    #[test]
+    fn create_note_from_template() {
+        run! [
+            Fail(Command::Note { name: "note_1".to_string(), from_template: true, template_name: None }), // no template name
+            Fail(Command::Note { name: "note_1".to_string(), from_template: true, template_name: Some("template".to_string())}), // template does not exist
+            Pass(Command::Template { name: Some("template".to_string()) }), // create template 
+            Pass(Command::Note { name: "note_1".to_string(), from_template: true, template_name: Some("template".to_string())}), // template does not exist
+            Pass(Command::Open { name: "note_1".to_string() })
+        ];
+    }
 }
