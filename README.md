@@ -80,6 +80,7 @@ $ jt enter newvault
 
 `enter` command is also used to switch to other vaults.
 
+
 #### ***Create notes and folders***
 
 ```bash
@@ -92,6 +93,30 @@ $ jt folder newfolder
 
 `note` and `folder`, both work similarly and create the corresponding items in ***current folder***. When a vault is first created, the ***current folder*** is set to its root.
 
+#### ***Create templates***
+
+To avoid having to write the boilerplate for things like weeks notes, `jot` provides note templates.
+
+```bash
+# list all templates
+$ jt template
+```
+
+```bash
+# create and edit a new template "weekly_note"
+$ jt template weekly_note
+```
+
+Notes can then be created using a template by supplying `--template (-t)` along with the name of the template.
+```bash
+# create a new note from the "weekly_note" template
+$ jt note reflection --template weekly_note
+
+# or equivalently
+
+$ jt nt reflection -t weekly_note
+```
+
 #### ***Create and edit daily note in the current vault***
 
 Daily notes are stored as `YYYY-MM-DD.md` at the top-level the current vault. `jt today` will edit any existing daily note. If no daily note exists, 
@@ -101,7 +126,6 @@ you will be prompted to create one.
 $ jt today 
 # Create daily note YYYY-MM-DD? (y/n)
 ```
-
 
 
 #### ***Change folder***
