@@ -14,6 +14,7 @@ lazy_static! {
     pub static ref TEST_HOME: PathBuf = PathBuf::from(format!("{}/tests", env!("CARGO_MANIFEST_DIR")));
     pub static ref TEST_VAULTS: PathBuf = PathBuf::from(format!("{}/tests/vaults", env!("CARGO_MANIFEST_DIR")));
     pub static ref TEST_CONFIG: PathBuf = PathBuf::from(format!("{}/tests/config", env!("CARGO_MANIFEST_DIR")));
+    pub static ref TEST_TEMPLATES: PathBuf = PathBuf::from(format!("{}/tests/templates", env!("CARGO_MANIFEST_DIR")));
 }
 pub const INITIAL_VAULT: &'static str = "vault_1";
 
@@ -89,7 +90,8 @@ pub fn execute_commands(commands: Vec<Test>) {
 }
 
 pub fn display_item_color_select<T: Item + Colored>() -> String {
-    let prompt = format!("Select a {} color.", T::type_name().color(T::get_color()));
+    // let prompt = format!("Select a {} color.", T::type_name().color(T::get_color()));
+    let prompt = format!("Select a color.");
     display_color_select(prompt)
 }
 

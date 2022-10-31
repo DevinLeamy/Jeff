@@ -43,6 +43,7 @@ perform fs operations on items
 
 config
     \x1b[0;34mconfig\x1b[0m, \x1b[0;34mcf\x1b[0m      set and get config values
+    \x1b[0;34mtemplate\x1b[0m, \x1b[0;34mtp\x1b[0m    create or edit a note template
 
 get help 
     use \x1b[0;34mhelp\x1b[0m or \x1b[0;34m-h\x1b[0m and \x1b[0;34m--help\x1b[0m flags along with a command to get corresponding help"))]
@@ -82,12 +83,28 @@ pub enum Command {
         name: String,
     },
     /// create a note
-    #[clap(override_usage("jt note\n    jt note [note name]"))]
+    #[clap(override_usage(
+        "jt note\n    jt note <note name>\n    jt note <note name> -t <template name>"
+    ))]
     #[clap(alias = "nt")]
     Note {
         /// name for new note (to be created in the current folder)
         #[clap(value_parser, name = "note name")]
         name: String,
+        /// create new note from an existing template
+        #[clap(parse(from_flag), short = 't', long = "template")]
+        from_template: bool,
+        /// name of the note template
+        #[clap(value_parser, name = "template name")]
+        template_name: Option<String>,
+    },
+    /// create or edit a template, or list existing templates
+    #[clap(override_usage("jt tempate\n    jt template [template-name]"))]
+    #[clap(alias = "tp")]
+    Template {
+        /// name of the template
+        #[clap(value_parser, name = "template name")]
+        name: Option<String>,
     },
     /// creates an alias for a note
     // #[clap(override_usage(

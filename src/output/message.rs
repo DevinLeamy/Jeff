@@ -8,6 +8,7 @@ pub enum Message {
     NoteAliasCreated(String, String),
     #[allow(unused)]
     NoteAliasRemoved(String, String),
+    TemplateCreated(String),
     ItemCreated(Item, String),
     ItemRemoved(Item, String),
     ItemRenamed(Item, String, String),
@@ -67,6 +68,9 @@ impl Display for Message {
                         "removed alias \x1b[0;34m{}\x1b[0m -> \x1b[0;34m{}\x1b[0m",
                         note_name, alias_name
                     )
+                }
+                Message::TemplateCreated(template_name) => {
+                    format!("Created template [{}]", template_name.blue())
                 }
                 Message::Custom(content) => content.to_string(),
                 Message::Empty => "".to_string(),

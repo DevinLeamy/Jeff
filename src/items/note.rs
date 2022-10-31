@@ -10,11 +10,55 @@ pub struct Note {
     location: JotPath,
 }
 
-impl Item for Note {
-    fn type_name() -> String {
+impl Note {
+    pub fn type_name() -> String {
         "note".to_string()
     }
 
+    pub fn generate_abs_path(parent_dir: &PathBuf, note_name: &String) -> PathBuf {
+        join_paths(vec![
+            parent_dir.to_str().unwrap(),
+            format!("{}.md", note_name).as_str(),
+        ])
+    }
+
+    /**
+     * Initializes an existing note from its path
+     */
+    pub fn load(note_location: PathBuf) -> JotResult<Self> {
+        if !Note::is_valid_path(&note_location) {
+            return Err(anyhow!("Invalid note path [{:?}]", note_location));
+        }
+
+        Ok(Note {
+            location: note_location.into(),
+        })
+    }
+
+    pub fn create(note_location: PathBuf) -> JotResult<Self> {
+        if !Note::is_valid_path(&note_location) {
+            return Err(anyhow!("Invalid note path [{:?}]", note_location));
+        }
+
+        create_file(note_location.clone())?;
+        let note = Note::load(note_location)?;
+
+        Ok(note)
+    }
+
+    /**
+     * Checks if a path points to a valid jot [Note].
+     */
+    pub fn is_valid_path(absolute_path: &PathBuf) -> bool {
+        if absolute_path.extension().is_none() {
+            return false;
+        }
+
+        !absolute_path.is_dir() && absolute_path.extension().unwrap() == "md"
+    }
+}
+
+impl Item for Note {
     fn get_location(&self) -> &JotPath {
         &self.location
     }
@@ -42,47 +86,5 @@ impl Item for Note {
         remove_file(&self.location.as_path())?;
 
         Ok(())
-    }
-
-    fn generate_abs_path(parent_dir: &PathBuf, note_name: &String) -> PathBuf {
-        join_paths(vec![
-            parent_dir.to_str().unwrap(),
-            format!("{}.md", note_name).as_str(),
-        ])
-    }
-
-    /**
-     * Initializes an existing note from its path
-     */
-    fn load(note_location: PathBuf) -> JotResult<Self> {
-        if !Note::is_valid_path(&note_location) {
-            return Err(anyhow!("Invalid note path [{:?}]", note_location));
-        }
-
-        Ok(Note {
-            location: note_location.into(),
-        })
-    }
-
-    fn create(note_location: PathBuf) -> JotResult<Self> {
-        if !Note::is_valid_path(&note_location) {
-            return Err(anyhow!("Invalid note path [{:?}]", note_location));
-        }
-
-        create_file(note_location.clone())?;
-        let note = Note::load(note_location)?;
-
-        Ok(note)
-    }
-
-    /**
-     * Checks if a path points to a valid jot [Note].
-     */
-    fn is_valid_path(absolute_path: &PathBuf) -> bool {
-        if absolute_path.extension().is_none() {
-            return false;
-        }
-
-        !absolute_path.is_dir() && absolute_path.extension().unwrap() == "md"
     }
 }
