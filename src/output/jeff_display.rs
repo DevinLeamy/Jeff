@@ -9,11 +9,11 @@ pub trait Colored {
     }
 }
 
-pub trait JotDisplay {
+pub trait JeffDisplay {
     fn to_display_string(&self) -> String;
 }
 
-impl<T> JotDisplay for T
+impl<T> JeffDisplay for T
 where
     T: Item + Colored,
 {

@@ -9,7 +9,7 @@ use crate::prelude::*;
 #[derive(Debug, Clone)]
 pub struct Vault {
     /// absolute path of the vault
-    path: JotPath,
+    path: JeffPath,
     /// folders inside of the vault,
     folders: Vec<Folder>,
     /// notes inside of the vault
@@ -29,10 +29,6 @@ impl Collection for Vault {
 }
 
 impl Vault {
-    pub fn type_name() -> String {
-        "vault".to_string()
-    }
-
     pub fn generate_abs_path(parent_dir: &PathBuf, vault_name: &String) -> PathBuf {
         join_paths(vec![parent_dir.to_str().unwrap(), vault_name])
     }
@@ -40,8 +36,8 @@ impl Vault {
     /**
      * Creates a new new at the given location.
      */
-    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
-        let path: JotPath = absolute_path.to_owned().into();
+    pub fn create(absolute_path: PathBuf) -> JeffResult<Self> {
+        let path: JeffPath = absolute_path.to_owned().into();
         if path.exists() {
             return Err(anyhow!(VaultAlreadyExists(
                 "Vault already exists".to_string()
@@ -50,7 +46,7 @@ impl Vault {
 
         std::fs::create_dir(&absolute_path.as_path())?;
 
-        let store_path = JotPath::from_parent(&path, ".jot/data".to_string()).to_path_buf();
+        let store_path = JeffPath::from_parent(&path, ".jeff/data".to_string()).to_path_buf();
         let mut new_store = VaultStore::load_path(store_path.clone());
         new_store.set_absolute_path(store_path);
 
@@ -73,15 +69,15 @@ impl Vault {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
-        let path: JotPath = absolute_path.into();
+    pub fn load(absolute_path: PathBuf) -> JeffResult<Self> {
+        let path: JeffPath = absolute_path.into();
 
         let mut new_vault = Vault {
             path: path.to_owned(),
             folders: vec![],
             notes: vec![],
             vault_store: VaultStore::load_path(
-                JotPath::from_parent(&path, ".jot/data".to_string()).to_path_buf(),
+                JeffPath::from_parent(&path, ".jeff/data".to_string()).to_path_buf(),
             ),
         };
 
@@ -91,21 +87,21 @@ impl Vault {
     }
 
     /**
-     * Check if a given absolute path is a valid `jot` [Vault]
+     * Check if a given absolute path is a valid `jeff` [Vault]
      */
     fn is_valid_path(absolute_path: &PathBuf) -> bool {
         // TOOD: add check to ensure that this vault
         // is not inside of another vault
-        !absolute_path.is_file() && absolute_path.file_name().unwrap() != ".jot"
+        !absolute_path.is_file() && absolute_path.file_name().unwrap() != ".jeff"
     }
 }
 
 impl Item for Vault {
-    fn get_location(&self) -> &JotPath {
+    fn get_location(&self) -> &JeffPath {
         &self.path
     }
 
-    fn relocate(&mut self, new_absolute_path: PathBuf) -> JotResult<()> {
+    fn relocate(&mut self, new_absolute_path: PathBuf) -> JeffResult<()> {
         assert!(Vault::is_valid_path(&new_absolute_path));
         rename(&self.path.as_path(), &new_absolute_path)?;
         self.path = new_absolute_path.to_owned().into();
@@ -114,7 +110,7 @@ impl Item for Vault {
         Ok(())
     }
 
-    fn rename(&mut self, new_name: String) -> JotResult<()> {
+    fn rename(&mut self, new_name: String) -> JeffResult<()> {
         let vault_parent_dir = self.path.parent();
         let new_absolute_path = get_absolute_path(&vault_parent_dir.to_path_buf(), &new_name);
 
@@ -126,7 +122,7 @@ impl Item for Vault {
         Ok(())
     }
 
-    fn delete(&self) -> JotResult<()> {
+    fn delete(&self) -> JeffResult<()> {
         // TODO: make sure the user is prompted before executing
         // NOTE: this could potentially delete a lot of information!
         remove_dir_all(&self.path.as_path())?;
@@ -136,11 +132,13 @@ impl Item for Vault {
 }
 
 impl Vault {
+    #[allow(unused)]
     pub fn as_collection(&self) -> Box<dyn Collection> {
         Box::new(self.clone())
     }
 
-    pub fn active_collection(&self) -> JotResult<Box<dyn Collection>> {
+    #[allow(unused)]
+    pub fn active_collection(&self) -> JeffResult<Box<dyn Collection>> {
         let active_folder = self.get_active_folder();
 
         if let Ok(Some(folder)) = active_folder {
@@ -149,7 +147,7 @@ impl Vault {
             Ok(self.as_collection())
         }
     }
-    pub fn get_note_from_active_folder(&self, name: &String) -> JotResult<Note> {
+    pub fn get_note_from_active_folder(&self, name: &String) -> JeffResult<Note> {
         if let Ok(Some(active_folder)) = self.get_active_folder() {
             Ok(active_folder.get_note_with_name(name)?)
         } else {
@@ -158,7 +156,7 @@ impl Vault {
         }
     }
 
-    pub fn get_active_folder(&self) -> JotResult<Option<Folder>> {
+    pub fn get_active_folder(&self) -> JeffResult<Option<Folder>> {
         if let Some(active_folder_path) = self.get_active_folder_path() {
             /*
              * We use active_folder_path (the relative path to the active folder) as
@@ -177,20 +175,20 @@ impl Vault {
     /// Returns the path absolute path to the folder inside of the vault that
     /// is currently "active". If no folder has been "cd"ed into, than the
     /// absolute path to the vault is returned.
-    pub fn get_active_location(&self) -> JotPath {
+    pub fn get_active_location(&self) -> JeffPath {
         let active_folder = self.vault_store.get_folder_path();
 
         if active_folder.is_none() {
             return self.get_location().to_owned();
         }
 
-        JotPath::from_parent(&self.get_location(), active_folder.unwrap())
+        JeffPath::from_parent(&self.get_location(), active_folder.unwrap())
     }
     /**
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
      */
-    pub fn load_contents(&mut self) -> JotResult<()> {
+    pub fn load_contents(&mut self) -> JeffResult<()> {
         for item in self.path.read_dir().unwrap() {
             let item_location = item.unwrap().path();
 
@@ -206,7 +204,7 @@ impl Vault {
         Ok(())
     }
 
-    pub fn change_folder(&mut self, path: &PathBuf) -> JotResult<()> {
+    pub fn change_folder(&mut self, path: &PathBuf) -> JeffResult<()> {
         let vault_path = self.get_location();
         let maybe_folder_path = self.vault_store.get_folder_path();
         let new_location = if let Some(folder_path) = maybe_folder_path {
@@ -244,16 +242,11 @@ impl Vault {
     }
 }
 
-impl Vault {
-    // pub fn remove_alias_from_note() {}
-    // pub fn set_alias() {}
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VaultStore {
     /// relative path from this vault to the active folder
     current_folder: Option<String>,
-    /// absolute path to the vault store data (some `<vault-path>/.jot/data`)
+    /// absolute path to the vault store data (some `<vault-path>/.jeff/data`)
     /// Option<T> type because [FileIO] has [Default] trait bound
     location: Option<PathBuf>,
     /// aliases for notes inside of the vault

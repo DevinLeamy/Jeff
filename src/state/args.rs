@@ -7,18 +7,8 @@ use std::path::PathBuf;
 #[clap(global_setting(AppSettings::DontCollapseArgsInUsage))]
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(global_setting(AppSettings::ColorNever))]
-#[clap(help_template("\x1b[0;34m________      _____ 
-______(_)_______  /_
-_____  /_  __ \\  __/
-____  / / /_/ / /_  
-___  /  \\____/\\__/  
-/___/
-\x1b[0m
-
-\x1b[0;34mv0.2.1\x1b[0m | crafted with ❤️ by \x1b[0;34maraekiel\x1b[0m and \x1b[0;34mdevinleamy\x1b[0m
-
-
-usage: jt <command>
+#[clap(help_template("
+usage: jf <command>
 
 \x1b[0;34mcommands:\x1b[0m
 
@@ -56,7 +46,7 @@ pub struct Args {
 pub enum Command {
     /// create a vault or list vaults
     #[clap(override_usage(
-        "jt vault\n    jt vault -l\n    jt vault <vault name> <vault location>"
+        "jf vault\n    jf vault -l\n    jf vault <vault name> <vault location>"
     ))]
     #[clap(alias = "vl")]
     Vault {
@@ -72,7 +62,7 @@ pub enum Command {
     },
     /// create or edit the daily note
     /// format: YYYY-MM-DD
-    #[clap(override_usage("jt today"))]
+    #[clap(override_usage("jf today"))]
     #[clap(alias = "to")]
     Today,
     /// enter a vault.
@@ -84,7 +74,7 @@ pub enum Command {
     },
     /// create a note
     #[clap(override_usage(
-        "jt note\n    jt note <note name>\n    jt note <note name> -t <template name>"
+        "jf note\n    jf note <note name>\n    jf note <note name> -t <template name>"
     ))]
     #[clap(alias = "nt")]
     Note {
@@ -99,7 +89,7 @@ pub enum Command {
         template_name: Option<String>,
     },
     /// create or edit a template, or list existing templates
-    #[clap(override_usage("jt tempate\n    jt template [template-name]"))]
+    #[clap(override_usage("jf tempate\n    jf template [template-name]"))]
     #[clap(alias = "tp")]
     Template {
         /// name of the template
@@ -108,7 +98,7 @@ pub enum Command {
     },
     /// creates an alias for a note
     // #[clap(override_usage(
-    //     "jt alias\n    jt alias <note name> -r\n    jt alias <note name> <alias>"
+    //     "jf alias\n    jf alias <note name> -r\n    jf alias <note name> <alias>"
     // ))]
     // #[clap(alias = "al")]
     // Alias {
@@ -130,7 +120,7 @@ pub enum Command {
         name: String,
     },
     /// create a folder
-    #[clap(override_usage("jt folder\n    jt folder [folder name]"))]
+    #[clap(override_usage("jf folder\n    jf folder [folder name]"))]
     #[clap(alias = "fd")]
     Folder {
         /// name for new folder (to be created in the current folder)
@@ -198,7 +188,7 @@ pub enum Command {
     List,
     /// display or set a config item
     #[clap(override_usage(
-        "jt config\njt config [config type]\n    jt config [config type] [config value]"
+        "jf config\njf config [config type]\n    jf config [config type] [config value]"
     ))]
     #[clap(alias = "cf")]
     Config {

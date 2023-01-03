@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use crate::jot_path::JotPath;
-use crate::output::error::JotResult;
+use crate::jeff_path::JeffPath;
+use crate::output::error::JeffResult;
 
 pub trait Item {
     /// Get the absolute path of an item
-    fn get_location(&self) -> &JotPath;
+    fn get_location(&self) -> &JeffPath;
     /// Get the name of an item. Names do not include file extensions.
     fn get_name(&self) -> String {
         self.get_location().file_name()
@@ -17,7 +17,7 @@ pub trait Item {
     /// Move the given item to a new location.
     ///
     /// `new_location` - absolute path to the new location
-    fn relocate(&mut self, new_location: PathBuf) -> JotResult<()>;
-    fn rename(&mut self, new_name: String) -> JotResult<()>;
-    fn delete(&self) -> JotResult<()>;
+    fn relocate(&mut self, new_location: PathBuf) -> JeffResult<()>;
+    fn rename(&mut self, new_name: String) -> JeffResult<()>;
+    fn delete(&self) -> JeffResult<()>;
 }

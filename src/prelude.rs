@@ -4,7 +4,7 @@ pub use crate::{
     enums::{Item as ItemType, VaultItem as VaultItemType},
     fileio::*,
     items::*,
-    jot_path::*,
+    jeff_path::*,
     output::{error::Error, Error::*, *},
     state::*,
     tests::*,

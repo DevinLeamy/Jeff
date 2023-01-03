@@ -22,7 +22,7 @@ pub enum Message {
 
 impl Message {
     fn create_message(content: String) -> String {
-        format!("ϟ {} ϟ {}", "Jot".yellow(), content)
+        format!("ϟ {} ϟ {}", "Jeff".yellow(), content)
     }
 }
 

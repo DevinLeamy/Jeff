@@ -90,7 +90,6 @@ pub fn execute_commands(commands: Vec<Test>) {
 }
 
 pub fn display_item_color_select<T: Item + Colored>() -> String {
-    // let prompt = format!("Select a {} color.", T::type_name().color(T::get_color()));
     let prompt = format!("Select a color.");
     display_color_select(prompt)
 }

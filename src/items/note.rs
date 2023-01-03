@@ -7,14 +7,10 @@ use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Note {
-    location: JotPath,
+    location: JeffPath,
 }
 
 impl Note {
-    pub fn type_name() -> String {
-        "note".to_string()
-    }
-
     pub fn generate_abs_path(parent_dir: &PathBuf, note_name: &String) -> PathBuf {
         join_paths(vec![
             parent_dir.to_str().unwrap(),
@@ -25,7 +21,7 @@ impl Note {
     /**
      * Initializes an existing note from its path
      */
-    pub fn load(note_location: PathBuf) -> JotResult<Self> {
+    pub fn load(note_location: PathBuf) -> JeffResult<Self> {
         if !Note::is_valid_path(&note_location) {
             return Err(anyhow!("Invalid note path [{:?}]", note_location));
         }
@@ -35,7 +31,7 @@ impl Note {
         })
     }
 
-    pub fn create(note_location: PathBuf) -> JotResult<Self> {
+    pub fn create(note_location: PathBuf) -> JeffResult<Self> {
         if !Note::is_valid_path(&note_location) {
             return Err(anyhow!("Invalid note path [{:?}]", note_location));
         }
@@ -59,11 +55,11 @@ impl Note {
 }
 
 impl Item for Note {
-    fn get_location(&self) -> &JotPath {
+    fn get_location(&self) -> &JeffPath {
         &self.location
     }
 
-    fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
+    fn relocate(&mut self, new_location: PathBuf) -> JeffResult<()> {
         assert!(Note::is_valid_path(&new_location));
         rename(&self.location.as_path(), &new_location)?;
         self.location = new_location.into();
@@ -71,8 +67,8 @@ impl Item for Note {
         Ok(())
     }
 
-    fn rename(&mut self, new_name: String) -> JotResult<()> {
-        let new_location = JotPath::from_parent(&self.location.parent(), new_name);
+    fn rename(&mut self, new_name: String) -> JeffResult<()> {
+        let new_location = JeffPath::from_parent(&self.location.parent(), new_name);
 
         rename(&self.location.as_path(), &new_location.as_path())?;
         self.location = new_location.into();
@@ -80,7 +76,7 @@ impl Item for Note {
         Ok(())
     }
 
-    fn delete(&self) -> JotResult<()> {
+    fn delete(&self) -> JeffResult<()> {
         // TODO: make sure the user is prompted before executing
         // NOTE: this could potentially delete a lot of information!
         remove_file(&self.location.as_path())?;

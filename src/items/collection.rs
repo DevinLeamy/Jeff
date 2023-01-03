@@ -1,11 +1,11 @@
 use anyhow::anyhow;
 
 use crate::items::{Folder, Item, Note};
-use crate::output::error::JotResult;
-use crate::prelude::JotDisplay;
+use crate::output::error::JeffResult;
+use crate::prelude::JeffDisplay;
 
 pub trait Collection: Item {
-    fn get_note_with_name(&self, name: &String) -> JotResult<Note> {
+    fn get_note_with_name(&self, name: &String) -> JeffResult<Note> {
         for note in self.notes() {
             if &note.get_name() == name {
                 return Ok(note);
@@ -19,7 +19,7 @@ pub trait Collection: Item {
         ))
     }
 
-    fn get_folder_with_name(&self, name: &String) -> JotResult<Folder> {
+    fn get_folder_with_name(&self, name: &String) -> JeffResult<Folder> {
         for folder in self.folders() {
             if &folder.get_name() == name {
                 return Ok(folder);
@@ -52,7 +52,7 @@ pub trait Collection: Item {
     }
 
     /**
-     * TODO: Move into [JotDisplay] trait
+     * TODO: Move into [JeffDisplay] trait
      */
     fn list(&self) {
         for folder in self.folders_sorted() {

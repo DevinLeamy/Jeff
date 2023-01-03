@@ -59,7 +59,7 @@ pub fn path_to_string(path: PathBuf) -> String {
 
 pub fn application_config_path() -> PathBuf {
     if cfg!(not(test)) {
-        let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
+        let project_dirs = ProjectDirs::from("com", "", "jeff").unwrap();
         project_dirs.config_dir().to_path_buf()
     } else {
         (*TEST_CONFIG).clone()
@@ -68,7 +68,7 @@ pub fn application_config_path() -> PathBuf {
 
 pub fn application_data_path() -> PathBuf {
     if cfg!(not(test)) {
-        let project_dirs = ProjectDirs::from("com", "", "jot").unwrap();
+        let project_dirs = ProjectDirs::from("com", "", "jeff").unwrap();
         project_dirs.data_dir().to_path_buf()
     } else {
         (*TEST_CONFIG).clone()
@@ -77,7 +77,7 @@ pub fn application_data_path() -> PathBuf {
 
 pub fn application_templates_path() -> PathBuf {
     if cfg!(not(test)) {
-        let template_dir = ProjectDirs::from("com", "", "jot").unwrap();
+        let template_dir = ProjectDirs::from("com", "", "jeff").unwrap();
         let mut template_dir_path = template_dir.data_dir().to_path_buf();
         template_dir_path.push("templates");
         template_dir_path
@@ -86,7 +86,7 @@ pub fn application_templates_path() -> PathBuf {
     }
 }
 
-pub fn create_file<P: AsRef<Path>>(path: P) -> JotResult<()> {
+pub fn create_file<P: AsRef<Path>>(path: P) -> JeffResult<()> {
     std::fs::File::options()
         .create_new(true)
         .write(true)

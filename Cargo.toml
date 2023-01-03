@@ -6,9 +6,9 @@ authors = ["devinleamy <devinleamy@gmail.com>", "araekiel <kumarshashwatsri@gmai
 license = "MIT"
 description = "⚡Rapid note management for the terminal."
 readme = "README.md"
-homepage = "https://github.com/devinleamy/jot"
-repository = "https://github.com/DevinLeamy/jot"
-keywords = ["cli", "notes", "note-management", "obsidian"]
+homepage = "https://github.com/devinleamy/jeff"
+repository = "https://github.com/DevinLeamy/jeff"
+keywords = ["cli", "notes", "note-management"]
 categories = ["command-line-utilities"]
 
 [dependencies]
@@ -20,4 +20,4 @@ chrono = "0.4.22"
 anyhow = "1.0"
 colored = "2"
 lazy_static = "1.4.0"
-dialoguer = { git="https://github.com/mitsuhiko/dialoguer.git", features = ["fuzzy-select"] }
+dialoguer = { git = "https://github.com/DevinLeamy/dialoguer", features = ["fuzzy-select"] }

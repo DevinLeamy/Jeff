@@ -3,7 +3,7 @@ mod editor;
 mod enums;
 mod fileio;
 mod items;
-mod jot_path;
+mod jeff_path;
 mod output;
 mod prelude;
 mod state;

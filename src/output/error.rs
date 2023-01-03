@@ -4,7 +4,7 @@ use colored::*;
 
 use crate::enums::Item;
 
-pub type JotResult<T> = anyhow::Result<T>;
+pub type JeffResult<T> = anyhow::Result<T>;
 
 #[allow(unused)]
 #[derive(Debug)]

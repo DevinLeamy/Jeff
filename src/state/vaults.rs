@@ -10,7 +10,7 @@ pub struct Vaults {
 }
 
 impl Vaults {
-    pub fn load() -> JotResult<Self> {
+    pub fn load() -> JeffResult<Self> {
         let mut vaults = Vaults {
             current: None,
             data: Data::load(),
@@ -19,7 +19,7 @@ impl Vaults {
         Ok(vaults)
     }
 
-    pub fn get_vault_path(&self, name: &String) -> JotResult<PathBuf> {
+    pub fn get_vault_path(&self, name: &String) -> JeffResult<PathBuf> {
         if let Some(vault_parent_dir) = self.data.get_vault_location(name) {
             Ok(get_absolute_path(vault_parent_dir, name))
         } else {
@@ -27,13 +27,13 @@ impl Vaults {
         }
     }
 
-    pub fn get_vault(&self, name: &String) -> JotResult<Vault> {
+    pub fn get_vault(&self, name: &String) -> JeffResult<Vault> {
         let vault_abs_path = self.get_vault_path(name)?;
         let vault = Vault::load(vault_abs_path)?;
         Ok(vault)
     }
 
-    fn load_current_vault(&mut self) -> JotResult<()> {
+    fn load_current_vault(&mut self) -> JeffResult<()> {
         self.current = if let Some(current_vault_name) = self.data.get_current_vault() {
             let vault_absolute_path = self.get_vault_path(current_vault_name)?;
             let current_vault = Vault::load(vault_absolute_path)?;
@@ -84,7 +84,7 @@ impl Vaults {
         current_vault_name.is_some() && vault_name == current_vault_name.unwrap()
     }
 
-    pub fn ref_current(&self) -> JotResult<&Vault> {
+    pub fn ref_current(&self) -> JeffResult<&Vault> {
         if self.current.is_none() {
             return Err(anyhow!("{}", Error::NotInsideVault));
         }
@@ -92,7 +92,7 @@ impl Vaults {
         Ok(self.current.as_ref().unwrap())
     }
 
-    pub fn mut_current(&mut self) -> JotResult<&mut Vault> {
+    pub fn mut_current(&mut self) -> JeffResult<&mut Vault> {
         if self.current.is_none() {
             return Err(anyhow!("{}", Error::NotInsideVault));
         }
@@ -100,7 +100,7 @@ impl Vaults {
         Ok(self.current.as_mut().unwrap())
     }
 
-    pub fn create_vault(&mut self, name: &str, location: &Path) -> JotResult<()> {
+    pub fn create_vault(&mut self, name: &str, location: &Path) -> JeffResult<()> {
         if self.data.vault_exists(name) {
             return Err(anyhow!(Error::VaultAlreadyExists(name.to_owned())));
         }
@@ -115,7 +115,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn remove_vault(&mut self, name: &str) -> JotResult<()> {
+    pub fn remove_vault(&mut self, name: &str) -> JeffResult<()> {
         let maybe_vault = self.get_vault(&name.to_string());
         if maybe_vault.is_err() {
             return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
@@ -133,7 +133,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn rename_vault(&mut self, name: &str, new_name: &str) -> JotResult<()> {
+    pub fn rename_vault(&mut self, name: &str, new_name: &str) -> JeffResult<()> {
         if self.data.vault_exists(new_name) {
             return Err(anyhow!(Error::VaultAlreadyExists(new_name.to_owned())));
         } else if !self.data.vault_exists(name) {
@@ -154,7 +154,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn move_vault(&mut self, name: &str, new_location: &Path) -> JotResult<()> {
+    pub fn move_vault(&mut self, name: &str, new_location: &Path) -> JeffResult<()> {
         if !self.data.vault_exists(name) {
             return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
         }
@@ -176,7 +176,7 @@ impl Vaults {
         Ok(())
     }
 
-    pub fn enter_vault(&mut self, name: &str) -> JotResult<()> {
+    pub fn enter_vault(&mut self, name: &str) -> JeffResult<()> {
         if !self.data.vault_exists(name) {
             return Err(anyhow!(Error::VaultNotFound(name.to_owned())));
         }

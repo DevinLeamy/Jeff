@@ -21,7 +21,7 @@ impl Editor {
 
     #[cfg(not(test))]
     /// Opens the given note using the editor.
-    pub fn open_note(&self, note: Note) -> JotResult<()> {
+    pub fn open_note(&self, note: Note) -> JeffResult<()> {
         let note_path = note.get_location();
         let mut open_editor_command = Command::new(self.name.to_owned())
             .arg(note_path.to_str().unwrap())
@@ -36,7 +36,7 @@ impl Editor {
 
     #[cfg(test)]
     /// "Pretends" to open the given note.
-    pub fn open_note(&self, note: Note) -> JotResult<()> {
+    pub fn open_note(&self, note: Note) -> JeffResult<()> {
         let note_path = note.get_location();
         assert!(Note::is_valid_path(&note_path.to_path_buf()) && note_path.to_path_buf().is_file());
 
@@ -44,7 +44,7 @@ impl Editor {
     }
 
     /// Copy the contents of one note into another note
-    pub fn copy_note(from_note: &Note, to_note: &Note) -> JotResult<()> {
+    pub fn copy_note(from_note: &Note, to_note: &Note) -> JeffResult<()> {
         let _ = std::fs::copy(
             from_note.get_location().to_path_buf(),
             to_note.get_location().to_path_buf(),

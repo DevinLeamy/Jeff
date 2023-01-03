@@ -8,7 +8,7 @@ use std::fs::{create_dir, remove_dir_all, rename};
 pub struct Folder {
     folders: Vec<Box<Folder>>,
     notes: Vec<Note>,
-    location: JotPath,
+    location: JeffPath,
 }
 
 impl Collection for Folder {
@@ -25,17 +25,13 @@ impl Collection for Folder {
 }
 
 impl Folder {
-    pub fn type_name() -> String {
-        "folder".to_string()
-    }
-
     pub fn generate_abs_path(parent_dir: &PathBuf, folder_name: &String) -> PathBuf {
         join_paths(vec![parent_dir.to_str().unwrap(), folder_name])
     }
     /**
      * Creates a new folder at the given location.
      */
-    pub fn create(absolute_path: PathBuf) -> JotResult<Self> {
+    pub fn create(absolute_path: PathBuf) -> JeffResult<Self> {
         println!("{:?}", absolute_path);
         if !Folder::is_valid_path(&absolute_path) {
             return Err(anyhow!("Invalid folder path"));
@@ -57,7 +53,7 @@ impl Folder {
      * Initializes an existing folder and loads it's contents
      * into notes and folders.
      */
-    pub fn load(absolute_path: PathBuf) -> JotResult<Self> {
+    pub fn load(absolute_path: PathBuf) -> JeffResult<Self> {
         if !Folder::is_valid_path(&absolute_path) {
             return Err(anyhow!("Invalid folder path"));
         }
@@ -75,10 +71,10 @@ impl Folder {
 
     /**
      * Check if a given location points to a valid
-     * `jot` [Folder]
+     * `jeff` [Folder]
      */
     pub fn is_valid_path(location: &PathBuf) -> bool {
-        location.file_name().unwrap() != ".jot" && !location.is_file()
+        location.file_name().unwrap() != ".jeff" && !location.is_file()
     }
 
     pub fn as_collection(&self) -> Box<dyn Collection> {
@@ -87,11 +83,11 @@ impl Folder {
 }
 
 impl Item for Folder {
-    fn get_location(&self) -> &JotPath {
+    fn get_location(&self) -> &JeffPath {
         &self.location
     }
 
-    fn relocate(&mut self, new_location: PathBuf) -> JotResult<()> {
+    fn relocate(&mut self, new_location: PathBuf) -> JeffResult<()> {
         assert!(Folder::is_valid_path(&new_location));
         rename(&self.location.as_path(), &new_location)?;
         self.location = new_location.into();
@@ -99,7 +95,7 @@ impl Item for Folder {
         Ok(())
     }
 
-    fn rename(&mut self, new_name: String) -> JotResult<()> {
+    fn rename(&mut self, new_name: String) -> JeffResult<()> {
         let file_parent = self.location.parent();
         let new_location = get_absolute_path(&file_parent.to_path_buf(), &new_name);
 
@@ -113,7 +109,7 @@ impl Item for Folder {
     /**
      * Deletes the folder and all of its contents.
      */
-    fn delete(&self) -> JotResult<()> {
+    fn delete(&self) -> JeffResult<()> {
         // TODO: make sure the user is prompted before executing
         // NOTE: this could potentially delete a lot of information!
         remove_dir_all(&self.location.as_path())?;
@@ -127,7 +123,7 @@ impl Folder {
      * Loads the contents of a folder into notes and folders vectors.
      * Note: Folders inside of `self` are also loaded.
      */
-    pub fn load_contents(&mut self) -> JotResult<()> {
+    pub fn load_contents(&mut self) -> JeffResult<()> {
         for item in self.location.read_dir().unwrap() {
             let item_location = item.unwrap().path();
 

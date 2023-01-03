@@ -27,7 +27,7 @@ impl App {
         show_loc: bool,
         name: &Option<String>,
         location: &Option<PathBuf>,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         if let (Some(name), Some(location)) = (name, location) {
             self.vaults.create_vault(name, location)?;
             Ok(Message::ItemCreated(ItemType::Vl, name.to_owned()))
@@ -41,7 +41,7 @@ impl App {
         }
     }
 
-    pub fn enter_vault(&mut self, name: &String) -> JotResult<Message> {
+    pub fn enter_vault(&mut self, name: &String) -> JeffResult<Message> {
         self.vaults.enter_vault(name)?;
         return Ok(Message::VaultEntered(name.to_owned()));
     }
@@ -51,7 +51,7 @@ impl App {
         name: &String,
         from_template: bool,
         template_name: &Option<String>,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         let vault = self.vaults.ref_current()?;
         let maybe_note = vault.get_note_with_name(name);
         let templates = self.templates.notes();
@@ -90,7 +90,7 @@ impl App {
         return Ok(Message::ItemCreated(ItemType::Nt, name.to_owned()));
     }
 
-    pub fn today(&mut self) -> JotResult<Message> {
+    pub fn today(&mut self) -> JeffResult<Message> {
         let daily_note_name = daily_note_name();
         let vault = self.vaults.ref_current()?;
         let mut message = Message::Empty;
@@ -122,7 +122,7 @@ impl App {
     }
 
     #[cfg(test)]
-    pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
+    pub fn open_note(&mut self, name: &String) -> JeffResult<Message> {
         let note = self
             .vaults
             .ref_current()?
@@ -131,7 +131,7 @@ impl App {
         Ok(Message::Empty)
     }
 
-    pub fn template(&mut self, name: &Option<String>) -> JotResult<Message> {
+    pub fn template(&mut self, name: &Option<String>) -> JeffResult<Message> {
         if name.is_none() {
             self.templates.list();
             return Ok(Message::Empty);
@@ -165,7 +165,7 @@ impl App {
     }
 
     #[cfg(not(test))]
-    pub fn open_note(&mut self, name: &String) -> JotResult<Message> {
+    pub fn open_note(&mut self, name: &String) -> JeffResult<Message> {
         let vault = self.vaults.ref_current()?;
         let active_collection: Box<dyn Collection> = vault.active_collection()?;
         let notes = active_collection.notes_sorted();
@@ -209,7 +209,7 @@ impl App {
         }
     }
 
-    pub fn create_folder(&mut self, name: &String) -> JotResult<Message> {
+    pub fn create_folder(&mut self, name: &String) -> JeffResult<Message> {
         let vault = self.vaults.ref_current()?;
 
         let maybe_folder = vault.get_folder_with_name(name);
@@ -227,14 +227,14 @@ impl App {
         return Ok(Message::ItemCreated(ItemType::Fd, name.to_owned()));
     }
 
-    pub fn change_directory(&mut self, path: &PathBuf) -> JotResult<Message> {
+    pub fn change_directory(&mut self, path: &PathBuf) -> JeffResult<Message> {
         let vault = self.vaults.mut_current()?;
         vault.change_folder(path)?;
 
         Ok(Message::FolderChanged)
     }
 
-    pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JotResult<Message> {
+    pub fn remove_item(&mut self, item_type: ItemType, name: &String) -> JeffResult<Message> {
         // display a dialog to confirm the action
         #[cfg(not(test))]
         let remove_item = confirmation_prompt(format!("Are you sure you want to remove {}?", name));
@@ -269,7 +269,7 @@ impl App {
         item_type: ItemType,
         name: &String,
         new_name: &String,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         match item_type {
             ItemType::Fd | ItemType::Folder => {
                 let vault = self.vaults.ref_current()?;
@@ -295,7 +295,7 @@ impl App {
         ));
     }
 
-    pub fn list(&self) -> JotResult<Message> {
+    pub fn list(&self) -> JeffResult<Message> {
         let vault = self.vaults.ref_current()?;
 
         if let Ok(Some(active_folder)) = vault.get_active_folder() {
@@ -317,7 +317,7 @@ impl App {
         &mut self,
         config_type: Option<ConfigType>,
         maybe_value: Option<String>,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         if config_type.is_none() {
             return Ok(Message::Custom(format!(
                 "\nConfiguration\n---\n{}",
@@ -352,7 +352,7 @@ impl App {
         item_type: ItemType,
         name: &String,
         new_location: &PathBuf,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         match item_type {
             ItemType::Fd | ItemType::Folder => {
                 // new location is relative to the root of the vault
@@ -395,7 +395,7 @@ impl App {
         item_type: VaultItemType,
         name: &String,
         vault_name: &String,
-    ) -> JotResult<Message> {
+    ) -> JeffResult<Message> {
         let vault = self.vaults.ref_current()?;
         let new_vault = self.vaults.get_vault(vault_name)?;
 
@@ -432,7 +432,7 @@ impl App {
 }
 
 impl App {
-    pub fn new() -> JotResult<Self> {
+    pub fn new() -> JeffResult<Self> {
         let editor_data = CONFIG.lock().unwrap().get_editor_data();
         let templates_path = application_templates_path();
 
@@ -448,7 +448,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    pub fn handle_command(&mut self, command: Command) -> JotResult<Message> {
+    pub fn handle_command(&mut self, command: Command) -> JeffResult<Message> {
         match &command {
             Command::Vault { show_loc, name, location, } => self.vault(*show_loc, name, location),
             Command::Enter { name } => self.enter_vault(name),
