@@ -4,11 +4,11 @@ version = "0.2.0"
 edition = "2021"
 authors = ["devinleamy <devinleamy@gmail.com>", "araekiel <kumarshashwatsri@gmail.com>"]
 license = "MIT"
-description = "⚡Rapid note management for the terminal."
+description = "Your note taking pal."
 readme = "README.md"
 homepage = "https://github.com/devinleamy/jeff"
 repository = "https://github.com/DevinLeamy/jeff"
-keywords = ["cli", "notes", "note-management"]
+keywords = ["cli", "notes", "note-management", "obsidian"]
 categories = ["command-line-utilities"]
 
 [dependencies]
