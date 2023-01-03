@@ -3,7 +3,7 @@
 <p>
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
-  <a href="#testing">Testing</a> •
+  <a href="#build">Build</a> •
   <a href="#notes">Notes</a>
 </p>
 
@@ -235,7 +235,7 @@ $ cargo run -- *args*
 
 Pass in commands and arguments after '***--***'.
 
-## Testing
+### Test
 
 All tests can be run using 
 ```bash
@@ -243,4 +243,4 @@ $ cargo test -- --test-threads=1
 ```
 
 ## Notes
-***Jeff*** was bootstrapped by [jot](https://crates.io/crates/jf), but eventually became a full rewrite with new features, a different design, and open-source maintainence in mind. Contributions are welcome!
+***Jeff*** was bootstrapped by [jot](https://crates.io/crates/jf), but eventually became a full rewrite with new features, a different design, and open-source maintenance in mind. Contributions are welcome!
