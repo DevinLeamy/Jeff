@@ -2,14 +2,9 @@
 
 <p>
   <a href="#installation">Installation</a> •
-  <a href="#notes">Notes</a> •
   <a href="#usage">Usage</a> •
-  <a href="#changelog">Changelog</a> •
-  <a href="#build-from-source">Build from Source</a> •
-  <a href="#dependencies">Dependencies</a> •
   <a href="#testing">Testing</a> •
-  <a href="#authors">Authors</a> •
-  <a href="#license">License</a>
+  <a href="#notes">Notes</a>
 </p>
 
 ***Jeff*** is a command line note management app, similar to Obsidian.
