@@ -200,7 +200,8 @@ dependencies = [
 [[package]]
 name = "dialoguer"
 version = "0.10.2"
-source = "git+https://github.com/DevinLeamy/dialoguer#e1aa87fc97fcd08611ab1db1d30641e5fed89ad2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a92e7e37ecef6857fdc0c0c5d42fd5b0938e46590c2183cc92dd310a6d078eb1"
 dependencies = [
  "console",
  "fuzzy-matcher",

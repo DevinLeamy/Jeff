@@ -189,7 +189,10 @@ impl App {
         let maybe_selection = FuzzySelect::with_theme(&ColorfulTheme::default())
             .items(&selections.to_owned())
             .default(0)
-            .with_initial_text(name.to_owned())
+            // Note: This can be uncommented once https://github.com/mitsuhiko/dialoguer/pull/226 is part of
+            //       crates.io release.
+            // ---
+            // .with_initial_text(name.to_owned())
             .interact_opt()?;
 
         if let Some(selection) = maybe_selection {
