@@ -43,7 +43,7 @@ impl Note {
     }
 
     /**
-     * Checks if a path points to a valid jot [Note].
+     * Checks if a path points to a valid [Note].
      */
     pub fn is_valid_path(absolute_path: &PathBuf) -> bool {
         if absolute_path.extension().is_none() {
