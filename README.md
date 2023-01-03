@@ -15,7 +15,7 @@
 #### ***Install with cargo:***
 
 ```bash
-$ cargo install jf
+$ cargo install jeff
 ```
 
 ## Usage
