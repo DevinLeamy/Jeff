@@ -1,5 +1,5 @@
 [package]
-name = "jf"
+name = "jeff"
 version = "0.2.0"
 edition = "2021"
 authors = ["devinleamy <devinleamy@gmail.com>", "araekiel <kumarshashwatsri@gmail.com>"]
@@ -10,6 +10,10 @@ homepage = "https://github.com/devinleamy/jeff"
 repository = "https://github.com/DevinLeamy/jeff"
 keywords = ["cli", "notes", "note-management", "obsidian"]
 categories = ["command-line-utilities"]
+
+[[bin]]
+name = "jf"
+path = "src/main.rs"
 
 [dependencies]
 serde = { version = "1.0.142", features = ["derive"] }
